@@ -37,6 +37,7 @@ COMMENT_EDIT="Editing: vim-nox|nano (text editing); tree (directory show)"
 PKGLIST_COMMS=" \
  socat openssh-server tightvncserver \
  xfce4 xfce4-goodies \
+ putty \
 "
 COMMENT_COMMS="Comms: vncserver & setup xfce (lightweight vnc session);"
 
@@ -139,6 +140,7 @@ function install_helper_scripts() {
    print_banner "Install helper scripts"
    run_cmd cp ./bin/osystem    $HOME/common/bin/
    run_cmd cp ./bin/kgrub      $HOME/common/bin/
+   run_cmd cp ./bin/oputty     $HOME/common/bin/
 }
 
 ######################################
