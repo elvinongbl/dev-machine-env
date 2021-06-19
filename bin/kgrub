@@ -1,0 +1,90 @@
+#!/bin/bash
+
+CHOICE=$1
+
+function usage(){
+    echo -e "$ kgrub show    - Show current GRUB config"
+    echo -e "$ kgrub verbose - Change GRUB to verbose mode"
+    echo -e "$ kgrub quiet   - Change GRUB to quiet mode"
+    echo -e "$ kgrub help     - Display this menu"
+}
+
+function print_line() {
+    echo -e "=========================================="
+}
+
+function print_topic() {
+    echo -e "# $@"
+}
+
+function kgrub_show() {
+    print_topic "Show /etc/default/grub"
+    sudo cat /etc/default/grub
+}
+
+function kgrub_verbose() {
+    local grubfile=/etc/default/grub
+    local tmpfile1=~/.tmp_grub1
+    local tmpfile2=~/.tmp_grub2
+
+    print_topic "Set GRUB_TIMEOUT_STYLE=menu TIMEOUT=10"
+    print_line
+    sed -e "s#GRUB_TIMEOUT_STYLE=hidden#GRUB_TIMEOUT_STYLE=menu#g" \
+        $grubfile > $tmpfile1
+    sed -e "s#GRUB_TIMEOUT=0#GRUB_TIMEOUT=10#g" \
+        $tmpfile1 > $tmpfile2
+    sed -e 's#CMDLINE_LINUX_DEFAULT="quiet splash"#CMDLINE_LINUX_DEFAULT="debug loglevel=7"#g' \
+        $tmpfile2 > $tmpfile1
+    sudo cp $tmpfile1 $grubfile
+
+    sudo update-grub2
+    rm $tmpfile1 $tmpfile2
+}
+
+function kgrub_quiet() {
+    local grubfile=/etc/default/grub
+    local tmpfile1=~/.tmp_grub1
+    local tmpfile2=~/.tmp_grub2
+
+    print_topic "Set GRUB_TIMEOUT_STYLE=hidden TIMEOUT=0"
+    print_line
+    sed -e "s#GRUB_TIMEOUT_STYLE=menu#GRUB_TIMEOUT_STYLE=hidden#g" \
+        $grubfile > $tmpfile1
+    sed -e "s#GRUB_TIMEOUT=10#GRUB_TIMEOUT=0#g" \
+        $tmpfile1 > $tmpfile2
+    sed -e 's#CMDLINE_LINUX_DEFAULT="debug loglevel=7"#CMDLINE_LINUX_DEFAULT="quiet splash"#g' \
+        $tmpfile2 > $tmpfile1
+    sudo cp $tmpfile1 $grubfile
+
+    sudo update-grub2
+    rm $tmpfile1 $tmpfile2
+}
+
+if [ $# -eq 0 ]; then
+    echo -e "Invalid input or usage"
+    usage
+    exit
+fi
+
+if [ x"$CHOICE" == x"show" ]; then
+    kgrub_show
+    exit
+fi
+
+if [ x"$CHOICE" == x"verbose" ]; then
+    kgrub_verbose
+    exit
+fi
+
+if [ x"$CHOICE" == x"quiet" ]; then
+    kgrub_quiet
+    exit
+fi
+
+if [ x"$CHOICE" == x"help" ]; then
+    usage
+    exit
+fi
+
+echo -e "Invalid input or usage"
+usage
