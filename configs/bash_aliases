@@ -32,3 +32,5 @@ alias ngrep="grep -rn"
 # Yocto Project
 alias bb='bitbake'
 
+# Add helper scripts to PATH
+export PATH=$HOME/common/bin:$PATH

@@ -133,11 +133,20 @@ function setup_vncserver() {
 }
 
 ######################################
+# Setup vncserver environment
+######################################
+function install_helper_scripts() {
+   print_banner "Install helper scripts"
+   run_cmd cp ./bin/osystem    $HOME/common/bin/
+}
+
+######################################
 # Main installation flow
 ######################################
 
 install_packages
 setup_misc
+install_helper_scripts
 setup_vncserver
 
 print_banner "Machine environment setup: COMPLETE."
