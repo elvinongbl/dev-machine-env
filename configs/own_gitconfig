@@ -1,0 +1,103 @@
+[user]
+ email = elvinongbl@gmail.com
+ name  = "Ong Boon Leong"
+ username = elvinongbl
+
+[sendemail]
+ smtpServer = smtp.gmail.com
+ signedoffcc = false
+ suppresscc = all
+ chainreplyto = false
+ assume8bitEncoding = utf-8
+ from = "Ong Boon Leong <elvinongbl@gmail.com>"
+ confirm = always
+ smtpUser = elvinongbl@gmail.com
+ smtpEncryption = tls
+ smtpServerPort = 587
+ smtpPass = spwacxfkpmgrisqz
+
+[pw]
+server = https://patchwork.ozlabs.org/api/1.1
+project = https://patchwork.ozlabs.org/project/netdev/list/
+token = 71f0e0e1e2033ac9b9508b7c126770302a9b5e38
+username = elvinongbl
+
+[tig "color"]
+    # A strange looking cursor line
+    cursor = yellow default bold
+
+    # Title colors <foreground background attribute>
+    title-blur = black white
+    title-focus = red white bold
+
+    # Diff colors <foreground background attribute>
+    diff-header = yellow default
+    diff-index =  green default
+    diff-chunk =  red default
+
+    date = white black
+    author = green black
+    directory = white black
+    file = green black
+
+# View-specific color
+[tig "color.tree"]
+    date = green default bold
+
+[color]
+ diff = auto
+ ui = auto
+ interactive = auto
+ grep = always
+
+[color.branch]
+ current = green
+ local = white
+ remote = red
+ upstream = yellow
+ plain = white
+
+[color "grep"]
+ match = red
+
+[pretty]
+    fixes = Fixes: %h (\"%s\")
+
+[core]
+ abbrev = 11
+ editor = vi
+ gitproxy = $HOME/common/bin/socatproxy
+ whitespace = trailing-space,tab-in-indent
+ pager = sed 's/\t/>-------/g' | less -R
+
+[filter "lfs"]
+        clean = git-lfs clean -- %f
+        smudge = git-lfs smudge --skip -- %f
+        required = true
+
+[credential]
+    helper = store
+[diff]
+    tool = vscode
+
+[difftool "vscode"]
+    cmd = code --wait --diff $LOCAL $REMOTE
+
+[alias]
+ co = checkout
+ cp = cherry-pick
+ dc = describe --contains
+ br = branch -v
+ bl = blame --abbrev=11
+ ci = commit
+ st = status
+ sts= status -sb
+ ol = log --oneline
+ olf = log --pretty=format:\"%h [%ci %cn]: %s\"
+ showf = show --format=fuller
+ logf  = log --format=fuller
+ merge-log = "!f() { git log --stat \"$1^..$1\"; }; f"
+ merge-ol = "!f() { git log --oneline \"$1^..$1\"; }; f"
+ merge-olg = "!f() { git log --oneline --graph \"$1^..$1\"; }; f"
+ merge-olgt = "!f() { git log --pretty=format:\"%h [%cD]: %s\" --graph \"$1^..$1\"; }; f"
+

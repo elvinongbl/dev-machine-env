@@ -1,0 +1,118 @@
+[user]
+    email = boon.leong.ong@intel.com
+    name = "Ong Boon Leong"
+
+[includeIf "gitdir:~/own-repos/"]
+    path = ~/own-repos/.gitconfig
+
+[sendemail]
+    smtpserver = smtp.intel.com
+    signedoffcc = false
+    suppresscc = all
+    chainreplyto = false
+    assume8bitEncoding = utf-8
+    from = "Ong Boon Leong <boon.leong.ong@intel.com>"
+    confirm = always
+
+[tig "color"]
+    # A strange looking cursor line
+    cursor = yellow default bold
+
+    # Title colors <foreground background attribute>
+    title-blur = black white
+    title-focus = red white bold
+
+    # Diff colors <foreground background attribute>
+    diff-header = yellow default
+    diff-index =  green default
+    diff-chunk =  red default
+
+    date = white black
+    author = green black
+    directory = white black
+    file = green black
+
+# View-specific color
+[tig "color.tree"]
+    date = green default bold
+
+[color]
+    diff = auto
+    ui = auto
+    interactive = auto
+    grep = always
+
+[color.branch]
+    current = green
+    local = white
+    remote = red
+    upstream = yellow
+    plain = white
+
+[color "grep"]
+    match = red
+
+[pretty]
+    fixes = Fixes: %h (\"%s\")
+
+[core]
+    abbrev = 11
+    editor = vim
+    gitproxy = /usr/bin/git_proxy_command
+    whitespace = trailing-space,tab-in-indent
+    pager = sed 's/\t/>-------/g' | less -R
+
+[http]
+        sslverify = false
+        proxy = http://proxy.png.intel.com:911
+
+[filter "lfs"]
+        clean = git-lfs clean -- %f
+        smudge = git-lfs smudge --skip -- %f
+        required = true
+
+[alias]
+ co = checkout
+ cp = cherry-pick
+ dc = describe --contains
+ br = branch -v
+ bl = blame --abbrev=11
+ ci = commit
+ st = status
+ sts = status -sb
+ ol = log --oneline
+ olf = log --pretty=format:\"%h [%ci %cn]: %s\"
+ showf = show --format=fuller
+ logf = log --format=fuller
+ merge-log = "!f() { git log --stat \"$1^..$1\"; }; f"
+ merge-ol = "!f() { git log --oneline \"$1^..$1\"; }; f"
+ merge-olg = "!f() { git log --oneline --graph \"$1^..$1\"; }; f"
+ merge-olgt = "!f() { git log --pretty=format:\"%h [%cD]: %s\" --graph \"$1^..$1\"; }; f"
+
+[review "https://git-*.devtools.intel.com/gerrit/"]
+  username = bong5
+
+[url "ssh://bong5@git-*.devtools.intel.com:29418/"]
+insteadOf=ssh://git-*.devtools.intel.com/
+insteadOf=ssh://git-*.devtools.intel.com:29418/
+insteadOf=git://git-*.devtools.intel.com/
+insteadOf=https://bong5@git-*.devtools.intel.com/gerrit/a/
+
+[url "ssh://bong5@git*.devtools.intel.com:29418/"]
+ insteadOf=ssh://git*.devtools.intel.com/
+ insteadOf=ssh://git*.devtools.intel.com:29418/
+ insteadOf=https://git*.devtools.intel.com/
+ insteadOf=https://git*.devtools.intel.com:29418/
+ insteadOf=http://git*.devtools.intel.com/
+ insteadOf=http://git*.devtools.intel.com:29418/
+ insteadOf=git://git*.devtools.intel.com/
+
+[https]
+        proxy = http://proxy.png.intel.com:911
+
+[credential]
+    helper = store
+[diff]
+    tool = vscode
+[difftool "vscode"]
+    cmd = code --wait --diff $LOCAL $REMOTE

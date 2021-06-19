@@ -1,0 +1,34 @@
+# ========================================================= #
+# A bunch of environment start-up
+# ========================================================= #
+
+##################
+# ssh-agent
+#
+# Start ssh-agent if not already started
+ssh_on=$(ls /tmp | grep ssh | wc -l)
+if [ x"$ssh_on" != x1 ]; then
+  eval $(ssh-agent -s)
+  ssh-add ~/.ssh/id_rsa
+  ssh-add ~/.ssh/id_rsa_gmail
+fi
+
+################
+# shell - git branch display
+# refer to ~/.bashrc for the original PS1 setting
+PS1='\[\033[01;32m\]\u\[\033[00m\]@\[\033[01;32m\]\h\[\033[00m\]:\[\033[01;32m\]\W\[\033[00m\]$(__git_ps1 " (%s)") \$ '
+
+# ========================================================= #
+# A bunch of command short-cut
+# ========================================================= #
+
+# A bunch of command aliases
+alias rebashrc='source ~/.bashrc'
+
+# General command line editting
+alias vv='vim.nox'
+alias ngrep="grep -rn"
+
+# Yocto Project
+alias bb='bitbake'
+
