@@ -1,0 +1,39 @@
+#!/bin/bash
+
+CHOICE=$1
+
+function usage(){
+    echo -e "  $ otput table - show color table"
+    echo -e "  $ otput help"
+}
+
+function oputty_table() {
+    for fg_color in {0..7}; do
+        set_foreground=$(tput setaf $fg_color)
+        for bg_color in {0..7}; do
+            set_background=$(tput setab $bg_color)
+            echo -n $set_background$set_foreground
+            printf ' F:%s B:%s ' $fg_color $bg_color
+        done
+        echo $(tput sgr0)
+    done
+}
+
+if [ $# -eq 0 ]; then
+    echo -e "Invalid input or usage"
+    usage
+    exit
+fi
+
+if [ x"$CHOICE" == x"help" ]; then
+    usage
+    exit
+fi
+
+if [ x"$CHOICE" == x"table" ]; then
+    oputty_table
+    exit
+fi
+
+echo -e "Invalid input or usage"
+usage
