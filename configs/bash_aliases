@@ -16,7 +16,10 @@ fi
 ################
 # shell - git branch display
 # refer to ~/.bashrc for the original PS1 setting
-PS1='\[\033[01;32m\]\u\[\033[00m\]@\[\033[01;32m\]\h\[\033[00m\]:\[\033[01;32m\]\W\[\033[00m\]$(__git_ps1 " (%s)") \$ '
+_GRN_=$(tput setaf 2)
+_YLW_=$(tput setaf 3)
+_WHT_=$(tput setaf 7)
+PS1='${_GRN_}\u${_YLW_}@${_GRN_}\h${_YLW_}:${_GRN_}\W${_WHT_}$(__git_ps1 " (%s)") ${_GRN_}\$ '
 
 # ========================================================= #
 # A bunch of command short-cut
