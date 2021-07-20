@@ -64,6 +64,17 @@ packeth (Eth packet generator); \
 wireshark (packet capture and disesector)\
 "
 
+PKGLIST_OBSERVABILITY=" \
+ procps util-linux sysstat iproute2 numactl \
+ linux-tools-common linux-tools-$(uname -r) \
+ bpfcc-tools bpftrace perf-tools-unstable \
+ trace-cmd nicstat ethtool tiptop msr-tools \
+"
+COMMENT_OBSERVABILITY=" \
+ Linux observability tool recommended in <System Performance - \
+ Enterprise and the Cloud>, Brendan Gregg \
+ "
+
 function install_packages(){
     print_banner "Install software packages on dev machine"
     print_topic "Update and upgrade current software packages..."
@@ -87,6 +98,9 @@ function install_packages(){
 
     print_topic $COMMENT_NETWORKING
     run_cmd sudo apt install -y $PKGLIST_NETWORKING
+
+    print_topic $COMMENT_OBSERVABILITY
+    run_cmd sudo apt install -y $PKGLIST_OBSERVABILITY
 }
 
 ######################################
