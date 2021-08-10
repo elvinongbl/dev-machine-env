@@ -132,7 +132,7 @@ function setup_misc(){
 function setup_vncserver() {
     print_banner "Setup vncserver"
     run_cmd mv $HOME/.vnc/xstartup  $HOME/.vnc/xstartup.bak
-    run_cmd cp ./configs/vncserver@.service  /etc/systemd/system/
+    run_cmd sudo cp ./configs/vncserver@.service  /etc/systemd/system/
     print_topic "Reload vncsever systemd unit"
     run_cmd systemctl daemon-reload
     run_cmd systemctl enable vncserver@1.service
