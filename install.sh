@@ -154,10 +154,7 @@ function setup_vncserver() {
 ######################################
 function install_helper_scripts() {
    print_banner "Install helper scripts"
-   run_cmd cp ./bin/osystem    $HOME/common/bin/
-   run_cmd cp ./bin/kgrub      $HOME/common/bin/
-   run_cmd cp ./bin/oputty     $HOME/common/bin/
-   run_cmd cp ./bin/mycmd      $HOME/common/bin/
+   run_cmd cp ./bin/*    $HOME/common/bin/
 }
 
 ######################################
