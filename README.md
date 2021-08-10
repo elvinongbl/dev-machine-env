@@ -1,10 +1,10 @@
 # To automate development machine setup
 
 1) Download and unzip the release package
-   Noet: Check https://github.com/elvinongbl/dev-machine-env/releases
+   Note: Check https://github.com/elvinongbl/dev-machine-env/releases
          for desired release package and copy the zipped package URL.
    For example:-
-     https://github.com/elvinongbl/dev-machine-env/archive/refs/tags/v0.5.zip
+     https://github.com/elvinongbl/dev-machine-env/archive/refs/tags/v0.5.0.zip
 
 ```
 $ curl -fsSL -o dev-machine-env.zip -L <URL of zipped package>
