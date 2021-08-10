@@ -168,4 +168,5 @@ setup_vncserver
 
 print_banner "Machine environment setup: COMPLETE."
 print_topic "Now, you may source ~/.bashrc to refresh"
+print_topic "Next, you may generate ssh key-pair: ssh-keygen -t ed25519 -C \"someone@gmail.com\" "
 
