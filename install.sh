@@ -21,7 +21,9 @@ function print_banner() {
 }
 
 function run_cmd() {
-    echo -e "$@"
+    COLOR='\033[0;36m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR\$ $@ $NCOLOR"
     if [ x"$DRYRUN" != x"dryrun" ]; then
         eval $@
     fi
