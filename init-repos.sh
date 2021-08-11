@@ -58,6 +58,10 @@ YOCTO_REPOS=" \
     https://git.yoctoproject.org/git/poky \
 "
 
+LEARNING_REPOS=" \
+    https://github.com/bpftools/linux-observability-with-bpf.git
+"
+
 function run_cmd() {
     COLOR='\033[0;36m'
     NCOLOR='\033[0m'
@@ -97,5 +101,4 @@ git_clone_repos ~/public-repos/oss-linux $LINUX_REPOS
 git_clone_repos ~/public-repos/oss-yocto $YOCTO_REPOS
 git_clone_repos ~/public-repos/oss-bpf $BPFXDP_REPOS
 git_clone_repos ~/public-repos/oss-netconf $NETCONF_REPOS
-
-
+git_clone_repos ~/public-repos/oss-learning $LEARNING_REPOS
