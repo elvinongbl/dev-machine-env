@@ -11,6 +11,7 @@ GITHUB_REPOS=" \
     https://github.com/elvinongbl/self-learning-materials.git \
     https://github.com/elvinongbl/devnotes.git \
     https://github.com/elvinongbl/dev-machine-setup.git \
+    https://github.com/elvinongbl/sys-tools.git \
 "
 
 PUBLIC_REPOS=" \
