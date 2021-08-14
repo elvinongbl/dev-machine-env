@@ -35,6 +35,7 @@ BPFXDP_REPOS=" \
     https://github.com/libbpf/libbpf.git \
     https://git.kernel.org/pub/scm/linux/kernel/git/bpf/bpf-next.git \
     https://git.kernel.org/pub/scm/linux/kernel/git/bpf/bpf.git \
+    https://github.com/polycube-network/polycube.git \
 "
 
 NETCONF_REPOS=" \
