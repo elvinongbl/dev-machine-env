@@ -54,6 +54,7 @@ PKGLIST_DEVTOOL=" \
  python3 python3-pip python3-pexpect python3-git python3-jinja2 pylint3 \
  texinfo unzip \
  wget xterm xz-utils xsltproc xmlto \
+ cmake \
 "
 COMMENT_DEVTOOL="Development tools:"
 
@@ -134,9 +135,9 @@ function setup_vncserver() {
     run_cmd mv $HOME/.vnc/xstartup  $HOME/.vnc/xstartup.bak
     run_cmd sudo cp ./configs/vncserver@.service  /etc/systemd/system/
     print_topic "Reload vncsever systemd unit"
-    run_cmd systemctl daemon-reload
-    run_cmd systemctl enable vncserver@1.service
-    run_cmd systemctl start vncserver@1
+    run_cmd sudo systemctl daemon-reload
+    run_cmd sudo systemctl enable vncserver@1.service
+    run_cmd sudo systemctl start vncserver@1
 
     ## Start vncserver manually to enter password
     print_topic "Start vncserver to create password"
