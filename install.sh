@@ -159,6 +159,27 @@ function install_helper_scripts() {
 }
 
 ######################################
+# GitHub uses personal token now since 13th Aug, so we need to move
+# https://github.blog/2020-12-15-token-authentication-requirements-for-git-operations/
+# https://github.com/microsoft/Git-Credential-Manager-Core#linux-install-instructions
+######################################
+
+# For pulling latest gcm from
+# https://github.com/microsoft/Git-Credential-Manager-Core/blob/main/docs/linuxcredstores.md
+# https://github.com/microsoft/Git-Credential-Manager-Core/releases
+function install_git_credential_manager_latest() {
+    print_topic "Install git credential manager (gcm) for all future github access"
+    latest="https://github.com/microsoft/Git-Credential-Manager-Core/releases/download/v2.0.498/gcmcore-linux_amd64.2.0.498.54650.deb"
+    latest_dpkg="gcmcore-linux_amd64.2.0.498.54650.deb"
+    run_cmd wget $latest
+    run_cmd sudo dpkg -i $latest_dpkg
+    run_cmd git config --global credential.credentialStore plaintext
+    run_cmd git-credential-manager-core configure
+    run_cmd rm $latest_dpkg
+    print_topic "Generate your github personal token and when you push commit, gcm will ask for token and store it"
+}
+
+######################################
 # Main installation flow
 ######################################
 
@@ -166,6 +187,7 @@ install_packages
 setup_misc
 install_helper_scripts
 setup_vncserver
+install_git_credential_manager_latest
 
 print_banner "Machine environment setup: COMPLETE."
 print_topic "Now, you may source ~/.bashrc to refresh"
