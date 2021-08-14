@@ -15,17 +15,34 @@ $ unzip dev-machine-env.zip
 ```
 $ ./install.sh
 ```
-
-# Additional informations:
 The installer (install.sh) performs the follow:-
-1) Software packages commonly used
+a) Software packages commonly used
 
-2) Environment settings:
+b) Environment settings:
    - $HOME/.vimrc
    - $HOME/.dircolors
    - $HOME/.bash_aliases: convenient alias and also personalized PS1
    - $HOME/.gitconfig : main git configuration
    - $HOME/own-repos/.gitconfig : github.com git configuration
 
-3) Install some extra convenient helper bash scripts under $HOME/common/bin
+c) Install some extra convenient helper bash scripts under $HOME/common/bin
    and add the $HOME/common/bin to environment variable PATH.
+
+3) To git clones git repos that have been of interest,
+```
+$ ./init-repos.sh
+```
+Note:
+ - $HOME/own-repos: contains personal repo and uses $HOME/own-repos/.gitconfig
+ - $HOME/public-repos: contains public repos and uses $HOME/.gitconfig
+ - $HOME/public-repos contains further sub-group of repos:
+   * oss-bpf
+   * oss-learning
+   * oss-linux
+   * oss-netconf
+   * oss-yocto
+
+4) To setup for BPF development environment
+```
+$ ./setup-bpf-env.sh
+```
