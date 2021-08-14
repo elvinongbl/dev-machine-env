@@ -27,6 +27,9 @@ PS1='${_GRN_}\u${_YLW_}@${_GRN_}\h${_YLW_}:${_GRN_}\W${_WHT_}$(__git_ps1 " (%s)"
 
 # A bunch of command aliases
 alias rebashrc='source ~/.bashrc'
+alias cdown="cd ~/own-repos"
+alias cdpub="cd ~/public-repos"
+alias cdenv="cd ~/own-repos/dev-machine-env"
 
 # General command line editting
 alias vv='vim.nox'
