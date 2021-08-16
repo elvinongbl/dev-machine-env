@@ -78,6 +78,13 @@ COMMENT_OBSERVABILITY=" \
  Enterprise and the Cloud>, Brendan Gregg \
  "
 
+PKGLIST_VIRTUALMACHINE=" \
+ vagrant virtualbox \
+"
+COMMENT_VIRTUALMACHINE=" \
+ Software package for virtual machine setup on host machine \
+"
+
 function install_packages(){
     print_banner "Install software packages on dev machine"
     print_topic "Update and upgrade current software packages..."
@@ -104,6 +111,9 @@ function install_packages(){
 
     print_topic $COMMENT_OBSERVABILITY
     run_cmd sudo apt install -y $PKGLIST_OBSERVABILITY
+
+    print_topic $COMMENT_VIRTUALMACHINE
+    run_cmd sudo apt install -y $PKGLIST_VIRTUALMACHINE
 }
 
 ######################################
