@@ -85,6 +85,19 @@ COMMENT_VIRTUALMACHINE=" \
  Software package for virtual machine setup on host machine \
 "
 
+# qemu is the package that contains the application.
+# qemu-kvm is a package we need for QEMU to be able to virtualize processes using KVM.
+# Since QEMU is a tool that provides us with a GUI, we installed virt-manager and virt-viewer.
+# The packages libvirt are the binaries used by both QEMU and KVM to perform virtualizations
+# and service monitoring.
+PKGLIST_QEMU=" \
+ qemu-kvm qemu virt-manager virt-viewer libvirt-clients \
+ libvirt-daemon-system bridge-utils virtinst libvirt-daemon \
+"
+COMMENT_QEMU=" \
+ Qemu/KVM tool
+"
+
 function install_packages(){
     print_banner "Install software packages on dev machine"
     print_topic "Update and upgrade current software packages..."
@@ -112,8 +125,13 @@ function install_packages(){
     print_topic $COMMENT_OBSERVABILITY
     run_cmd sudo apt install -y $PKGLIST_OBSERVABILITY
 
-    print_topic $COMMENT_VIRTUALMACHINE
-    run_cmd sudo apt install -y $PKGLIST_VIRTUALMACHINE
+    # This installation will cause system reboot
+    # uncommon it if you are beside your machine
+    #print_topic $COMMENT_VIRTUALMACHINE
+    #run_cmd sudo apt install -y $PKGLIST_VIRTUALMACHINE
+
+    print_topic $COMMENT_QEMU
+    run_cmd sudo apt install -y $PKGLIST_QEMU
 }
 
 ######################################
@@ -135,6 +153,9 @@ function setup_misc(){
     run_cmd mkdir -p $HOME/common/bin
     run_cmd cp ./bin/socatproxy    $HOME/common/bin/socatproxy
     run_cmd chmod +x $HOME/common/bin/socatproxy
+
+    print_topic "Create workspace"
+    run_cmd mkdir -p $HOME/workspace
 }
 
 ######################################
