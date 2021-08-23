@@ -54,7 +54,8 @@ PKGLIST_DEVTOOL=" \
  python3 python3-pip python3-pexpect python3-git python3-jinja2 pylint3 \
  texinfo unzip \
  wget xterm xz-utils xsltproc xmlto \
- cmake \
+ cmake p7zip-full p7zip-rar \
+ squashfs-tools \
 "
 COMMENT_DEVTOOL="Development tools:"
 
