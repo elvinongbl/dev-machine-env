@@ -73,8 +73,39 @@ function extract_iso() {
         fi
     done
     run_cmd cd $CWD
+}
 
+function extract_ubuntu() {
+    NCOLOR='\033[0m'
+    DESTDIR=$1
+    shift
+    URLS=$@
+    CWD=$(pwd)
+    run_cmd mkdir -p $DESTDIR
+    run_cmd cd $DESTDIR
+    for url in $URLS; do
+        TOPDIR=$(dirname $url)
+        ISONAME=$(echo $url | grep -o -P "(?<=$TOPDIR/).*")
+        ISUBUNTU=$(echo $ISONAME | grep -c ubuntu)
+        EXTDIR=$(echo $url | grep -o -P "(?<=$TOPDIR/).*(?=.iso)")
+
+        if [ ! -d $EXTDIR.rootfs ] && [ -d $EXTDIR ] && [ $ISUBUNTU -eq 1 ]; then
+            echo -e "${NCOLOR}Extracting rootfs from $DESTDIR/$EXTDIR"
+            FSYS=$(find $EXTDIR -name filesystem.squashfs)
+            KERN=$(find $EXTDIR -name vmlinuz)
+            run_cmd mkdir -p $EXTDIR.rootfs
+            run_cmd sudo unsquashfs -f -d $EXTDIR.rootfs $FSYS
+            run_cmd cp $KERN $EXTDIR.vmlinuz
+        fi
+
+        if [ -d $EXTDIR.rootfs ] && [ $ISUBUNTU -eq 1 ]; then
+            echo -e "${NCOLOR}Extracted rootfs from $DESTDIR/$EXTDIR"
+            run_cmd ls -al $DESTDIR/$EXTDIR.rootfs
+        fi
+    done
+    run_cmd cd $CWD
 }
 
 download_iso ~/workspace/distros $DISTRO
 extract_iso ~/workspace/distros $DISTRO
+extract_ubuntu ~/workspace/distros $DISTRO
