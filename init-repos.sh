@@ -27,6 +27,7 @@ PUBLIC_REPOS=" \
     https://github.com/open62541/open62541.git \
     https://github.com/bristot/rtsl.git \
     https://git.kernel.org/pub/scm/utils/trace-cmd/trace-cmd.git \
+    https://github.com/mirror/busybox.git \
 "
 
 BPFXDP_REPOS=" \
@@ -63,6 +64,11 @@ YOCTO_REPOS=" \
 
 LEARNING_REPOS=" \
     https://github.com/bpftools/linux-observability-with-bpf.git
+"
+
+VT_REPOS=" \
+    https://github.com/libvirt/libvirt.git
+    https://github.com/qemu/qemu.git
 "
 
 function run_cmd() {
@@ -105,3 +111,4 @@ git_clone_repos ~/public-repos/oss-yocto $YOCTO_REPOS
 git_clone_repos ~/public-repos/oss-bpf $BPFXDP_REPOS
 git_clone_repos ~/public-repos/oss-netconf $NETCONF_REPOS
 git_clone_repos ~/public-repos/oss-learning $LEARNING_REPOS
+git_clone_repos ~/public-repos/oss-virtualization $VT_REPOS
