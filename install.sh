@@ -1,9 +1,17 @@
 #!/bin/bash
 #
-# ./install.sh [dryrun]
-#
+# ./install.sh all work|home
+# ./install.sh mycmd
+# ./install.sh package
 
-DRYRUN=$1
+CHOICE=$1
+MODE=$2
+
+function usage() {
+    echo -e "./install.sh all work|home"
+    echo -e "./install.sh mycmd"
+    echo -e "./install.sh package"
+}
 
 ######################################
 # Convenient script
@@ -24,9 +32,7 @@ function run_cmd() {
     COLOR='\033[0;36m'
     NCOLOR='\033[0m'
     echo -e "$COLOR\$ $@ $NCOLOR"
-    if [ x"$DRYRUN" != x"dryrun" ]; then
-        eval $@
-    fi
+    eval $@
 }
 
 ######################################
@@ -146,14 +152,22 @@ function setup_misc(){
     run_cmd cp ./configs/bash_aliases  $HOME/.bash_aliases
 
     print_topic "Setup ~/.gitconfig & ~/own-github/.github"
-    run_cmd cp ./configs/main_gitconfig     $HOME/.gitconfig
-    run_cmd mkdir -p $HOME/own-repos/
-    run_cmd cp ./configs/own_gitconfig $HOME/own-repos/.gitconfig
+    if [ x"$MODE" == x"work" ]; then
+        run_cmd cp ./configs/main_gitconfig     $HOME/.gitconfig
+        run_cmd mkdir -p $HOME/own-repos/
+        run_cmd cp ./configs/own_gitconfig $HOME/own-repos/.gitconfig
+    else
+        run_cmd cp ./configs/home_main_gitconfig     $HOME/.gitconfig
+        run_cmd mkdir -p $HOME/own-repos/
+        run_cmd cp ./configs/home_own_gitconfig $HOME/own-repos/.gitconfig
+    fi
 
-    print_topic "Setup ~/common/bin/socat"
-    run_cmd mkdir -p $HOME/common/bin
-    run_cmd cp ./bin/socatproxy    $HOME/common/bin/socatproxy
-    run_cmd chmod +x $HOME/common/bin/socatproxy
+    if [ x"$MODE" == x"work" ]; then
+        print_topic "Setup ~/common/bin/socat"
+        run_cmd mkdir -p $HOME/common/bin
+        run_cmd cp ./configs/socatproxy    $HOME/common/bin/socatproxy
+        run_cmd chmod +x $HOME/common/bin/socatproxy
+    fi
 
     print_topic "Create workspace"
     run_cmd mkdir -p $HOME/workspace
@@ -176,18 +190,18 @@ function setup_vncserver() {
     run_cmd vncserver
     run_cmd vncserver -kill :1
 
-
-   ## Finally, on the client machine create a ssh pipe to vncserver
-   # ssh -L 5901:127.0.0.1:5901 -C -N -l bong5 elvinlatte.local
-   # For MAC, open safari, use vnc://localhost:5901
+    ## Finally, on the client machine create a ssh pipe to vncserver
+    # ssh -L 5901:127.0.0.1:5901 -C -N -l bong5 elvinlatte.local
+    # For MAC, open safari, use vnc://localhost:5901
 }
 
 ######################################
 # Setup vncserver environment
 ######################################
 function install_helper_scripts() {
-   print_banner "Install helper scripts"
-   run_cmd cp ./bin/*    $HOME/common/bin/
+    print_banner "Install helper scripts"
+    run_cmd mkdir -p $HOME/common/bin
+    run_cmd cp ./bin/*    $HOME/common/bin/
 }
 
 ######################################
@@ -215,13 +229,28 @@ function install_git_credential_manager_latest() {
 # Main installation flow
 ######################################
 
-install_packages
-setup_misc
-install_helper_scripts
-setup_vncserver
-install_git_credential_manager_latest
+if [ x"$CHOICE" == x"all" ]; then
+    print_banner "Install: all (a new system)"
+    install_packages
+    setup_misc
+    install_helper_scripts
+    setup_vncserver
+    install_git_credential_manager_latest
 
-print_banner "Machine environment setup: COMPLETE."
-print_topic "Now, you may source ~/.bashrc to refresh"
-print_topic "Next, you may generate ssh key-pair: ssh-keygen -t ed25519 -C \"someone@gmail.com\" "
+    print_banner "Machine environment setup: COMPLETE."
+    print_topic "Now, you may source ~/.bashrc to refresh"
+    print_topic "Next, you may generate ssh key-pair: ssh-keygen -t ed25519 -C \"someone@gmail.com\" "
+fi
 
+if [ x"$CHOICE" == x"mycmd" ]; then
+    print_banner "Install: mycmd (own convenient scripts)"
+    install_helper_scripts
+    print_topic "Install: mycmd : Completed"
+    run_cmd mycmd
+fi
+
+if [ x"$CHOICE" == x"package" ]; then
+    print_banner "Install: package (Software Package)"
+    install_packages
+    print_topic "Install: package : Completed"
+fi
