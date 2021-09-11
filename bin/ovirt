@@ -1,12 +1,12 @@
 #!/bin/bash
 #
-# ovirt show
 
 CHOICE=$1
 
 function usage(){
-    echo -e "  $ ovirt show"
-    echo -e "  $ ovirt help"
+    echo -e " $ ovirt show"
+    echo -e " $ ovirt help"
+    echo -e " $ ovirt install <vmname> <vcpus> <ramsize> <osvariant> <isopath> <isoname>"
 }
 
 function print_topic() {
@@ -34,6 +34,23 @@ function ovirt_show() {
     run_cmd virsh net-list
 }
 
+function ovirt_install() {
+    shift
+    VMNAME=$1
+    VCPUS=$2
+    RAMSIZE=$3
+    OSVARIANT=$4
+    ISOPATH=$5
+    ISONAME=$6
+    if [ ! -f $ISOPATH ]; then
+        print_topic Install VM with ISO=$ISOPATH
+        run_cmd virt-install --virt-type=kvm --name $VMNAME --vcpus $VCPUS --ram $RAMSIZE --os-variant=$OSVARIANT \
+                --cdrom=$ISOPATH $ISONAME  --network=default --graphics vnc --disk size=16
+    else
+        print_topic "Error: No ISO file provided"
+    fi
+}
+
 if [ $# -eq 0 ]; then
     echo -e "Invalid input or usage"
     usage
@@ -42,5 +59,10 @@ fi
 
 if [ x"$CHOICE" == x"show" ]; then
     ovirt_show
+    exit
+fi
+
+if [ x"$CHOICE" == x"install" ]; then
+    ovirt_install
     exit
 fi
