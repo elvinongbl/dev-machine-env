@@ -1,0 +1,46 @@
+#!/bin/bash
+#
+# ovirt show
+
+CHOICE=$1
+
+function usage(){
+    echo -e "  $ ovirt show"
+    echo -e "  $ ovirt help"
+}
+
+function print_topic() {
+    echo -e "\n# $@"
+}
+
+function run_cmd() {
+    COLOR='\033[0;36m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR\$ $@ $NCOLOR"
+    if [ x"$DRYRUN" != x"dryrun" ]; then
+        eval $@
+    fi
+}
+
+function print_cmd() {
+    COLOR='\033[0;36m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR\$ $@ $NCOLOR"
+}
+
+function ovirt_show() {
+    print_topic Show virtual machine status
+    run_cmd virsh list
+    run_cmd virsh net-list
+}
+
+if [ $# -eq 0 ]; then
+    echo -e "Invalid input or usage"
+    usage
+    exit
+fi
+
+if [ x"$CHOICE" == x"show" ]; then
+    ovirt_show
+    exit
+fi
