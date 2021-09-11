@@ -1,5 +1,12 @@
 #!/bin/bash
 
+CHOICE=$1
+
+function usage() {
+    echo -e "./download-distro.sh all"
+    echo -e "./download-distro.sh download"
+}
+
 function print_topic() {
     echo -e "\n# $@"
 }
@@ -24,8 +31,9 @@ function print_cmd() {
 }
 
 DISTRO=" \
-    https://releases.ubuntu.com/20.04.2.0/ubuntu-20.04.2.0-desktop-amd64.iso
-    https://fedora.ipserverone.com/fedora/linux/releases/32/Workstation/x86_64/iso/Fedora-Workstation-Live-x86_64-32-1.6.iso
+    https://releases.ubuntu.com/20.04.3/ubuntu-20.04.3-desktop-amd64.iso \
+    https://releases.ubuntu.com/20.04.3/ubuntu-20.04.3-live-server-amd64.iso \
+    https://fedora.ipserverone.com/fedora/linux/releases/32/Workstation/x86_64/iso/Fedora-Workstation-Live-x86_64-32-1.6.iso \
 "
 
 function download_iso() {
@@ -106,6 +114,16 @@ function extract_ubuntu() {
     run_cmd cd $CWD
 }
 
-download_iso ~/workspace/distros $DISTRO
-extract_iso ~/workspace/distros $DISTRO
-extract_ubuntu ~/workspace/distros $DISTRO
+if [ x"$CHOICE" == x"" ]; then
+    usage
+fi
+
+if [ x"$CHOICE" == x"download" ]; then
+    download_iso ~/workspace/distros $DISTRO
+fi
+
+if [ x"$CHOICE" == x"all" ]; then
+    download_iso ~/workspace/distros $DISTRO
+    extract_iso ~/workspace/distros $DISTRO
+    extract_ubuntu ~/workspace/distros $DISTRO
+fi
