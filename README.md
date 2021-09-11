@@ -13,7 +13,7 @@ $ unzip dev-machine-env.zip
 
 2) Execute the installer script and enter your user's password when prompted
 ```
-$ ./install.sh
+$ ./install.sh all work|home
 ```
 The installer (install.sh) performs the follow:-
 a) Software packages commonly used
