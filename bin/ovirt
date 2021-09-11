@@ -5,8 +5,9 @@ CHOICE=$1
 
 function usage(){
     echo -e " $ ovirt show"
-    echo -e " $ ovirt help"
+    echo -e " $ ovirt osinfo"
     echo -e " $ ovirt install <vmname> <vcpus> <ramsize> <osvariant> <isopath> <isoname>"
+    echo -e " $ ovirt help"
 }
 
 function print_topic() {
@@ -32,6 +33,12 @@ function ovirt_show() {
     print_topic Show virtual machine status
     run_cmd virsh list
     run_cmd virsh net-list
+    run_cmd osinfo-query os
+}
+
+function ovirt_osinfo() {
+    print_topic "Show OS variant (E.g. virt-install ... --os-variant=ubuntu20.04 ...)"
+    run_cmd osinfo-query os
 }
 
 function ovirt_install() {
@@ -51,7 +58,7 @@ function ovirt_install() {
     fi
 }
 
-if [ $# -eq 0 ]; then
+if [ $# -eq 0 ] || [ x"$CHOICE" == x"help" ]; then
     echo -e "Invalid input or usage"
     usage
     exit
@@ -59,6 +66,11 @@ fi
 
 if [ x"$CHOICE" == x"show" ]; then
     ovirt_show
+    exit
+fi
+
+if [ x"$CHOICE" == x"osinfo" ]; then
+    ovirt_osinfo
     exit
 fi
 

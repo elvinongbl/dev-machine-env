@@ -100,6 +100,7 @@ COMMENT_VIRTUALMACHINE=" \
 PKGLIST_QEMU=" \
  qemu-kvm qemu virt-manager virt-viewer libvirt-clients \
  libvirt-daemon-system bridge-utils virtinst libvirt-daemon \
+ libosinfo-bin \
 "
 COMMENT_QEMU=" \
  Qemu/KVM tool
