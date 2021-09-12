@@ -97,13 +97,19 @@ COMMENT_VIRTUALMACHINE=" \
 # Since QEMU is a tool that provides us with a GUI, we installed virt-manager and virt-viewer.
 # The packages libvirt are the binaries used by both QEMU and KVM to perform virtualizations
 # and service monitoring.
+#
+# https://earlruby.org/2018/12/use-iso-and-kickstart-files-to-automatically-create-vms/
 PKGLIST_QEMU=" \
- qemu-kvm qemu virt-manager virt-viewer libvirt-clients \
- libvirt-daemon-system bridge-utils virtinst libvirt-daemon \
+ qemu-kvm qemu virt-manager virt-viewer virtinst \
+ libvirt-bin libvirt-clients libvirt-daemon libvirt-daemon-system \
+ libvirt-daemon-driver-storage-zfs \
  libosinfo-bin \
+ python3-libvirt \
+ vagrant-libvirt vagrant-sshfs \
+ bridge-utils \
 "
 COMMENT_QEMU=" \
- Qemu/KVM tool
+ Qemu/KVM tool \
 "
 
 function install_packages(){
