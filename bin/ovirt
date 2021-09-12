@@ -1,13 +1,37 @@
 #!/bin/bash
-#
 
-CHOICE=$1
+INSTALL=
+VMNAME=
+ISOPATH=
+KSPATH=
+VCPUS=2
+MEMORY_MB=1024
+STORAGE_GB=20
+BRIDGE=virbr0
+MACADDR="RANDOM"
+DEBUG=
 
-function usage(){
-    echo -e " $ ovirt show"
-    echo -e " $ ovirt osinfo"
-    echo -e " $ ovirt install <vmname> <vcpus> <ramsize> <osvariant> <isopath> <isoname>"
-    echo -e " $ ovirt help"
+VMIMAGEDIR=/var/lib/libvirt
+
+function usage() {
+cat << EOF
+    ovirt [OPTIONS]
+    OPTIONS:
+        -H        Show help message
+        -S        Show vm list and net list
+        -O        Show supported os variant type
+
+        -I        Install new vm
+        -n        Virtual Machine Name
+        -i        Full path of OS iso file
+        -k        Full path of OS installation kickstart file
+        -c        VCPUs count
+        -r        System Memory RAM size in MB
+        -s        Storage size in GB
+        -b        Bridge interface to use
+        -m        MAC address used by VM
+        -d        Debug mode
+EOF
 }
 
 function print_topic() {
@@ -18,9 +42,7 @@ function run_cmd() {
     COLOR='\033[0;36m'
     NCOLOR='\033[0m'
     echo -e "$COLOR\$ $@ $NCOLOR"
-    if [ x"$DRYRUN" != x"dryrun" ]; then
-        eval $@
-    fi
+    eval $@
 }
 
 function print_cmd() {
@@ -33,7 +55,6 @@ function ovirt_show() {
     print_topic Show virtual machine status
     run_cmd virsh list
     run_cmd virsh net-list
-    run_cmd osinfo-query os
 }
 
 function ovirt_osinfo() {
@@ -41,40 +62,72 @@ function ovirt_osinfo() {
     run_cmd osinfo-query os
 }
 
-function ovirt_install() {
-    shift
-    VMNAME=$1
-    VCPUS=$2
-    RAMSIZE=$3
-    OSVARIANT=$4
-    ISOPATH=$5
-    ISONAME=$6
-    if [ ! -f $ISOPATH ]; then
-        print_topic Install VM with ISO=$ISOPATH
-        run_cmd virt-install --virt-type=kvm --name $VMNAME --vcpus $VCPUS --ram $RAMSIZE --os-variant=$OSVARIANT \
-                --cdrom=$ISOPATH $ISONAME  --network=default --graphics vnc --disk size=16
-    else
-        print_topic "Error: No ISO file provided"
+while getopts "HSOIn:i:k:c:r:s:b:m:d" option; do
+    case "${option}"
+    in
+        H)
+            usage
+            exit 0
+            ;;
+        S)
+            ovirt_show
+            exit 0
+            ;;
+        O)
+            ovirt_osinfo
+            exit 0
+            ;;
+        I) INSTALL=true;;
+        n) VMNAME=${OPTARG};;
+        i) ISOPATH=${OPTARG};;
+        k) KSPATH=${OPTARG};;
+        c) VCPUS=${OPTARG};;
+        r) MEMORY_MB=${OPTARG};;
+        s) STORAGE_GB=${OPTARG};;
+        b) BRIDGE=${OPTARG};;
+        m) MACADDR=${OPTARG};;
+        d) DEBUG=true;;
+    esac
+done
+
+if [ x"$INSTALL" == x"true" ]; then
+    if [ -z $VMNAME ] || [ -z $ISOPATH ] || [ -z $KSPATH ] ; then
+        usage
+        exit 0
     fi
-}
 
-if [ $# -eq 0 ] || [ x"$CHOICE" == x"help" ]; then
-    echo -e "Invalid input or usage"
-    usage
-    exit
+    run_cmd sudo mkdir -p $VMIMAGEDIR/xml
+    run_cmd sudo mkdir -p $VMIMAGEDIR/images
+
+    CMD="virt-install \
+      --name="$VMNAME" \
+      --connect=qemu:///system \
+      --check-cpu --vcpus="$VCPUS" --arch x86_64 --virt-type=kvm \
+      --ram="$MEMORY_MB" \
+      --disk="$VMIMAGEDIR/images/$VMNAME.img,bus=virtio,size=${STORAGE_GB}" \
+      --bridge="$BIRDGE" --mac="$MACADDR" \
+      --watchdog=default --graphics=none \
+      --autostart --force \
+      --noautoconsole \
+      --debug \
+      --os-type=linux --location="$ISOPATH" \
+      --extra-args="ks=file:/${KSPATH} console=tty0 console=ttyS0,115200n8 serial" \
+      --initrd-inject="${KSPATH}" \
+    "
+
+    # If not debug mode, connect to the VM for installation
+    if [ ! -z $DEBUG ]; then
+        run_cmd virsh console "$VMNAME"
+        run_cmd virsh start "$VMNAME"
+    fi
+
+    # Backup the VM's XML definition file
+    run_cmd ' sudo virsh dumpxml "$VMNAME" > "$VMIMAGEDIR/xml/$VMNAME.xml" '
+    exit 0
 fi
 
-if [ x"$CHOICE" == x"show" ]; then
-    ovirt_show
-    exit
-fi
+usage
 
-if [ x"$CHOICE" == x"osinfo" ]; then
-    ovirt_osinfo
-    exit
-fi
-
-if [ x"$CHOICE" == x"install" ]; then
-    ovirt_install
-    exit
-fi
+# Good reference:-
+# https://blog.programster.org/kvm-cheatsheet
+# https://linux.die.net/man/1/virt-install
