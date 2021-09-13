@@ -16,10 +16,10 @@ fi
 ################
 # shell - git branch display
 # refer to ~/.bashrc for the original PS1 setting
-_GRN_=$(tput setaf 2)
-_YLW_=$(tput setaf 3)
-_WHT_=$(tput setaf 7)
-PS1='${_GRN_}\u${_YLW_}@${_GRN_}\h${_YLW_}:${_GRN_}\W${_WHT_}$(__git_ps1 " (%s)") ${_GRN_}\$ '
+#_GRN_=\[\033[01;32m\]
+#_WHT_=\[\033[00m\]
+#PS1='${debian_chroot:+($debian_chroot)}${_GRN_}\u@\h${_WHT_}:${_GRN_}\W${_WHT_}$(__git_ps1 " (%s)") ${_GRN_}\$ ${_WHT_}'
+PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;32m\]\W\[\033[00m\]$(__git_ps1 " (%s)") \[\033[01;32m\]\$ \[\033[00m\]'
 
 # ========================================================= #
 # A bunch of command short-cut
