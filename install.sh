@@ -103,7 +103,7 @@ PKGLIST_QEMU=" \
  qemu-kvm qemu virt-manager virt-viewer virtinst \
  libvirt-bin libvirt-clients libvirt-daemon libvirt-daemon-system \
  libvirt-daemon-driver-storage-zfs \
- libosinfo-bin \
+ libosinfo-bin libguestfs-tools cpu-checker ssh-askpass-gnome \
  python3-libvirt \
  vagrant-libvirt vagrant-sshfs \
  bridge-utils \
