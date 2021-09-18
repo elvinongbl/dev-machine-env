@@ -12,7 +12,11 @@ MEMORY_MB=1024
 STORAGE_GB=20
 BRIDGE=virbr0
 MACADDR="RANDOM"
-DEBUG=
+
+PERVM_OPS=
+VOL_OPS=
+VOL_NAME=
+VOL_TARGET=
 
 VMIMAGEDIR=/var/lib/libvirt
 
@@ -33,6 +37,13 @@ cat << EOF
           -p             Suspend Virtual Machine
           -m             Resume Virtual Machine
 
+        -V <VM>    Manage storage volume for specific VM
+          -a               Add volume
+          -d               Delete volume
+          -v <vol name>    Specify volume name
+          -s <size>        Storage size in GB
+          -g <target name> Disk device target
+
         -I        Install new vm
           -n        Virtual Machine Name
           -i        Full path of OS iso file
@@ -43,7 +54,6 @@ cat << EOF
           -s        Storage size in GB
           -b        Bridge interface to use
           -m        MAC address used by VM
-          -d        Debug mode
 
         -D        Delete a vm
           -n        Virtual Machine Name
@@ -73,6 +83,8 @@ function ovirt_show() {
     print_topic Show virtual machine status
     run_cmd virsh list --all
     run_cmd virsh net-list
+    run_cmd sudo virsh pool-list
+    run_cmd sudo virsh vol-list images
 }
 
 function ovirt_osinfo() {
@@ -99,7 +111,7 @@ function ovirt_misc_cmd() {
     print_cmd "virsh restore <vm_name-desc.saved> \n"
 }
 
-while getopts "HSOxetpmDIN:n:i:o:k:c:r:s:b:m:d" option; do
+while getopts "HSOxetpmadDIN:V:v:g:n:i:o:k:c:r:s:b:m:d" option; do
     case "${option}"
     in
         H)
@@ -125,6 +137,12 @@ while getopts "HSOxetpmDIN:n:i:o:k:c:r:s:b:m:d" option; do
           p) PERVM_OPS=suspend;;
           m) PERVM_OPS=resume;;
 
+        V) PERVM=${OPTARG};;
+          a) VOL_OPS=add;;
+          d) VOL_OPS=delete;;
+          v) VOL_NAME=${OPTARG};;
+          g) VOL_TARGET=${OPTARG};;
+
         D) DELETE=true;;
         I) INSTALL=true;;
           n) VMNAME=${OPTARG};;
@@ -136,11 +154,10 @@ while getopts "HSOxetpmDIN:n:i:o:k:c:r:s:b:m:d" option; do
           s) STORAGE_GB=${OPTARG};;
           b) BRIDGE=${OPTARG};;
           m) MACADDR=${OPTARG};;
-          d) DEBUG=1;;
     esac
 done
 
-if [ x"$PERVM" != x"" ]; then
+if [ x"$PERVM_OPS" != x"" ] && [ x"$PERVM" != x"" ]; then
     if [ x"$PERVM" == x"ALL" ]; then
         if [ x"$PERVM_OPS" == x"start" ]; then
             VMLIST=$(sudo virsh list --all | grep "shut off" | awk '{print $2}')
@@ -198,6 +215,26 @@ if [ x"$PERVM" != x"" ]; then
     exit 0
 fi
 
+if [ x"$VOL_OPS" != x"" ] && [ x"$PERVM" != x"" ]; then
+    if [ x"$VOL_OPS" == x"add" ]; then
+        run_cmd sudo virsh vol-create-as images ${VOL_NAME}.qcow2 ${STORAGE_GB}
+        run_cmd sudo du -sh /var/lib/libvirt/images/${VOL_NAME}.qcow2
+        run_cmd sudo virsh attach-disk --domain ${PERVM} \
+                        --source /var/lib/libvirt/images/${VOL_NAME}.qcow2 \
+                        --persistent --target ${VOL_TARGET}
+        run_cmd sudo virsh pool-refresh images
+        run_cmd sudo virsh vol-list images
+    fi
+    if [ x"$VOL_OPS" == x"delete" ]; then
+        run_cmd sudo virsh detach-disk --domain ${PERVM} --persistent --live \
+                        --target ${VOL_TARGET}
+        run_cmd sudo virsh vol-delete ${VOL_NAME}.qcow2 --pool images
+        run_cmd sudo virsh pool-refresh images
+        run_cmd sudo virsh vol-list images
+    fi
+    exit 0
+fi
+
 if [ x"$INSTALL" == x"true" ]; then
     if [ -z $VMNAME ] || [ -z $ISOPATH ] || [ -z $KSPATH ]; then
         usage
@@ -224,10 +261,8 @@ if [ x"$INSTALL" == x"true" ]; then
       --extra-args "console=tty0 console=ttyS0,115200n8 serial"
 
     # If not debug mode, connect to the VM for installation
-    if [ ! -z $DEBUG ]; then
-        run_cmd virsh console "$VMNAME"
-        #run_cmd virsh start "$VMNAME"
-    fi
+    #run_cmd virsh console "$VMNAME"
+    #run_cmd virsh start "$VMNAME"
 
     # Backup the VM's XML definition file
     #sudo virsh dumpxml "$VMNAME" > "$VMIMAGEDIR/xml/$VMNAME.xml"
