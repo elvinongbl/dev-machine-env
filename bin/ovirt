@@ -1,9 +1,12 @@
 #!/bin/bash
 
 INSTALL=
+DELETE=
+PERVM=
 VMNAME=
 ISOPATH=
 KSPATH=
+OSVARIANT=
 VCPUS=2
 MEMORY_MB=1024
 STORAGE_GB=20
@@ -20,17 +23,30 @@ cat << EOF
         -H        Show help message
         -S        Show vm list and net list
         -O        Show supported os variant type
+        -M        Show miscellanous of virsh commands
+
+        -N <VM>   Control VM domain specific
+                    If <VM>=ALL, apply to all VMs
+          -x             Start Virtual Machine
+          -e             Stop  Virtual Machine
+          -t             Reboot Virtual Machine
+          -p             Suspend Virtual Machine
+          -m             Resume Virtual Machine
 
         -I        Install new vm
-        -n        Virtual Machine Name
-        -i        Full path of OS iso file
-        -k        Full path of OS installation kickstart file
-        -c        VCPUs count
-        -r        System Memory RAM size in MB
-        -s        Storage size in GB
-        -b        Bridge interface to use
-        -m        MAC address used by VM
-        -d        Debug mode
+          -n        Virtual Machine Name
+          -i        Full path of OS iso file
+          -o        OS variant
+          -k        Full path of OS installation kickstart file
+          -c        VCPUs count
+          -r        System Memory RAM size in MB
+          -s        Storage size in GB
+          -b        Bridge interface to use
+          -m        MAC address used by VM
+          -d        Debug mode
+
+        -D        Delete a vm
+          -n        Virtual Machine Name
 EOF
 }
 
@@ -52,8 +68,10 @@ function print_cmd() {
 }
 
 function ovirt_show() {
+    print_topic Show Host node info
+    run_cmd sudo virsh nodeinfo
     print_topic Show virtual machine status
-    run_cmd virsh list
+    run_cmd virsh list --all
     run_cmd virsh net-list
 }
 
@@ -62,7 +80,26 @@ function ovirt_osinfo() {
     run_cmd osinfo-query os
 }
 
-while getopts "HSOIn:i:k:c:r:s:b:m:d" option; do
+function ovirt_misc_cmd() {
+    print_topic To rename VM
+    print_cmd "virsh domrename <old_name> <new_name> \n"
+    print_topic To enable autostart VM
+    print_cmd "virsh autostart <vm_name> \n"
+    print_topic To disable autostart VM
+    print_cmd "virsh autostart --disable <vm_name> \n"
+    print_topic To force shutdown VM
+    print_cmd "virsh destroy <vm_name> \n"
+    print_topic To remove a VM
+    print_cmd "virsh undefine <vm_name> --remove-all-storage \n"
+    print_topic To connect to VM console
+    print_cmd "virsh console <vm_name> --force \n"
+    print_topic To save VM state
+    print_cmd "virsh save <vm_name> <vm_name-desc.saved> \n"
+    print_topic To restore VM state
+    print_cmd "virsh restore <vm_name-desc.saved> \n"
+}
+
+while getopts "HSOxetpmDIN:n:i:o:k:c:r:s:b:m:d" option; do
     case "${option}"
     in
         H)
@@ -77,52 +114,142 @@ while getopts "HSOIn:i:k:c:r:s:b:m:d" option; do
             ovirt_osinfo
             exit 0
             ;;
+        M)
+            ovirt_misc_cmd
+            exit 0
+            ;;
+        N) PERVM=${OPTARG};;
+          x) PERVM_OPS=start;;
+          e) PERVM_OPS=stop;;
+          t) PERVM_OPS=reboot;;
+          p) PERVM_OPS=suspend;;
+          m) PERVM_OPS=resume;;
+
+        D) DELETE=true;;
         I) INSTALL=true;;
-        n) VMNAME=${OPTARG};;
-        i) ISOPATH=${OPTARG};;
-        k) KSPATH=${OPTARG};;
-        c) VCPUS=${OPTARG};;
-        r) MEMORY_MB=${OPTARG};;
-        s) STORAGE_GB=${OPTARG};;
-        b) BRIDGE=${OPTARG};;
-        m) MACADDR=${OPTARG};;
-        d) DEBUG=true;;
+          n) VMNAME=${OPTARG};;
+          i) ISOPATH=${OPTARG};;
+          o) OSVARIANT=${OPTARG};;
+          k) KSPATH=${OPTARG};;
+          c) VCPUS=${OPTARG};;
+          r) MEMORY_MB=${OPTARG};;
+          s) STORAGE_GB=${OPTARG};;
+          b) BRIDGE=${OPTARG};;
+          m) MACADDR=${OPTARG};;
+          d) DEBUG=1;;
     esac
 done
 
+if [ x"$PERVM" != x"" ]; then
+    if [ x"$PERVM" == x"ALL" ]; then
+        if [ x"$PERVM_OPS" == x"start" ]; then
+            VMLIST=$(sudo virsh list --all | grep "shut off" | awk '{print $2}')
+            for VM in $VMLIST; do
+                run_cmd virsh start $VM
+                run_cmd virsh dominfo $VM
+            done
+        fi
+        if [ x"$PERVM_OPS" == x"stop" ]; then
+            VMLIST=$(sudo virsh list --all | grep "running" | awk '{print $2}')
+            for VM in $VMLIST; do
+                run_cmd virsh shutdown $VM
+                run_cmd sleep 10
+                run_cmd virsh dominfo $VM
+            done
+        fi
+        if [ x"$PERVM_OPS" == x"reboot" ]; then
+            VMLIST=$(sudo virsh list --all | grep "running" | awk '{print $2}')
+            for VM in $VMLIST; do
+                run_cmd virsh reboot $VM
+            done
+        fi
+        if [ x"$PERVM_OPS" == x"suspend" ]; then
+            VMLIST=$(sudo virsh list --all | grep "running" | awk '{print $2}')
+            for VM in $VMLIST; do
+                run_cmd virsh suspend $VM
+            done
+        fi
+        if [ x"$PERVM_OPS" == x"resume" ]; then
+            VMLIST=$(sudo virsh list --all | grep "paused" | awk '{print $2}')
+            for VM in $VMLIST; do
+                run_cmd virsh resume $VM
+            done
+        fi        
+    else
+        if [ x"$PERVM_OPS" == x"start" ]; then
+            run_cmd virsh start $PERVM
+            run_cmd virsh dominfo $PERVM
+        fi
+        if [ x"$PERVM_OPS" == x"stop" ]; then
+            run_cmd virsh shutdown $PERVM
+            run_cmd sleep 10
+            run_cmd virsh dominfo $PERVM
+        fi
+        if [ x"$PERVM_OPS" == x"reboot" ]; then
+                run_cmd virsh reboot $PERVM
+        fi
+        if [ x"$PERVM_OPS" == x"suspend" ]; then
+                run_cmd virsh suspend $PERVM
+        fi
+        if [ x"$PERVM_OPS" == x"resume" ]; then
+                run_cmd virsh resume $PERVM
+        fi
+    fi
+    exit 0
+fi
+
 if [ x"$INSTALL" == x"true" ]; then
-    if [ -z $VMNAME ] || [ -z $ISOPATH ] || [ -z $KSPATH ] ; then
+    if [ -z $VMNAME ] || [ -z $ISOPATH ] || [ -z $KSPATH ]; then
         usage
         exit 0
     fi
 
+    KSFILE=$(basename "$KSPATH")
+
     run_cmd sudo mkdir -p $VMIMAGEDIR/xml
     run_cmd sudo mkdir -p $VMIMAGEDIR/images
 
-    CMD="virt-install \
-      --name="$VMNAME" \
-      --connect=qemu:///system \
-      --check-cpu --vcpus="$VCPUS" --arch x86_64 --virt-type=kvm \
-      --ram="$MEMORY_MB" \
-      --disk="$VMIMAGEDIR/images/$VMNAME.img,bus=virtio,size=${STORAGE_GB}" \
-      --bridge="$BIRDGE" --mac="$MACADDR" \
-      --watchdog=default --graphics=none \
+    virt-install \
+      --name "$VMNAME" \
+      --connect qemu:///system \
+      --check-cpu --vcpus "$VCPUS" --arch x86_64 --virt-type kvm \
+      --ram "$MEMORY_MB" \
+      --disk "$VMIMAGEDIR/images/$VMNAME.img,bus=virtio,size=${STORAGE_GB}" \
+      --bridge "$BRIDGE" --mac "$MACADDR" \
+      --watchdog default --graphics none \
       --autostart --force \
-      --noautoconsole \
       --debug \
-      --os-type=linux --location="$ISOPATH" \
-      --extra-args="ks=file:/${KSPATH} console=tty0 console=ttyS0,115200n8 serial" \
-      --initrd-inject="${KSPATH}" \
-    "
+      --os-variant "$OSVARIANT" --location "$ISOPATH" \
+      --console "pty,target_type=serial" \
+      --extra-args "console=tty0 console=ttyS0,115200n8 serial"
 
     # If not debug mode, connect to the VM for installation
     if [ ! -z $DEBUG ]; then
         run_cmd virsh console "$VMNAME"
-        run_cmd virsh start "$VMNAME"
+        #run_cmd virsh start "$VMNAME"
     fi
 
     # Backup the VM's XML definition file
-    run_cmd ' sudo virsh dumpxml "$VMNAME" > "$VMIMAGEDIR/xml/$VMNAME.xml" '
+    #sudo virsh dumpxml "$VMNAME" > "$VMIMAGEDIR/xml/$VMNAME.xml"
+    exit 0
+fi
+
+if [ x"$DELETE" == x"true" ] && [ ! -z $VMNAME ]; then
+    if [ -f $VMIMAGEDIR/images/$VMNAME.img ]; then
+        run_cmd virsh destroy "$VMNAME"
+        run_cmd virsh undefine "$VMNAME" --remove-all-storage
+        run_cmd sudo ls $VMIMAGEDIR/images/
+        run_cmd sudo rm $VMIMAGEDIR/images/$VMNAME.img
+    else
+        run_cmd virsh destroy "$VMNAME"
+        run_cmd virsh undefine "$VMNAME" --remove-all-storage
+    fi
+
+    if [ -f $VMIMAGEDIR/xml/$VMNAME.xml ]; then
+        run_cmd sudo ls $VMIMAGEDIR/xml/
+        run_cmd sudo rm $VMIMAGEDIR/xml/$VMNAME.xml
+    fi
+
     exit 0
 fi
 
