@@ -2,8 +2,9 @@
 
 INSTALL=
 DELETE=
+CLONE=
+
 PERVM=
-VMNAME=
 ISOPATH=
 KSPATH=
 OSVARIANT=
@@ -44,8 +45,9 @@ cat << EOF
           -s <size>        Storage size in GB
           -g <target name> Disk device target
 
-        -I        Install new vm
-          -n        Virtual Machine Name
+        -C <Source VM> <New VM>   Clone VM name
+
+        -I <VM>     Install new vm
           -i        Full path of OS iso file
           -o        OS variant
           -k        Full path of OS installation kickstart file
@@ -55,8 +57,7 @@ cat << EOF
           -b        Bridge interface to use
           -m        MAC address used by VM
 
-        -D        Delete a vm
-          -n        Virtual Machine Name
+        -D <VM name>  Delete a vm
 EOF
 }
 
@@ -109,9 +110,19 @@ function ovirt_misc_cmd() {
     print_cmd "virsh save <vm_name> <vm_name-desc.saved> \n"
     print_topic To restore VM state
     print_cmd "virsh restore <vm_name-desc.saved> \n"
+    print_topic To create VM snapshot
+    print_cmd "virsh snapshot-create-as --domain <vm_name> --name <snapshot_name> --description \"text\"  \n"
+    print_topic To list VM snapshot
+    print_cmd "virsh snapshot-list <vm_name> \n"
+    print_topic To display VM snapshot info
+    print_cmd "virsh snapshot-info --domain <vm_name> --snapshotname <snapshot_name> \n"
+    print_topic To revert VM snapshot info
+    print_cmd "virsh snapshot-revert --domain <vm_name> --snapshotname <snapshot_name> --running \n"
+    print_topic To delete VM snapshot info
+    print_cmd "virsh snapshot-delete --domain <vm_name> --snapshotname <snapshot_name> \n"
 }
 
-while getopts "HSOxetpmadDIN:V:v:g:n:i:o:k:c:r:s:b:m:d" option; do
+while getopts "HSOMxetpmadIC:D:N:V:v:g:i:o:k:c:r:s:b:m:d" option; do
     case "${option}"
     in
         H)
@@ -143,9 +154,17 @@ while getopts "HSOxetpmadDIN:V:v:g:n:i:o:k:c:r:s:b:m:d" option; do
           v) VOL_NAME=${OPTARG};;
           g) VOL_TARGET=${OPTARG};;
 
-        D) DELETE=true;;
-        I) INSTALL=true;;
-          n) VMNAME=${OPTARG};;
+        C) CLONE=true
+          PERVM=${OPTARG}
+          ;;
+
+        D) DELETE=true
+          PERVM=${OPTARG}
+          ;;
+
+        I) INSTALL=true
+          PERVM=${OPTARG}
+          ;;
           i) ISOPATH=${OPTARG};;
           o) OSVARIANT=${OPTARG};;
           k) KSPATH=${OPTARG};;
@@ -235,8 +254,16 @@ if [ x"$VOL_OPS" != x"" ] && [ x"$PERVM" != x"" ]; then
     exit 0
 fi
 
+if [ x"$CLONE" == x"true" ]; then
+    shift $((OPTIND -1))
+    NEWVM=$1
+    run_cmd sudo virt-clone --connect qemu:///system --original ${PERVM} --name ${NEWVM} \
+                    --file /var/lib/libvirt/images/${NEWVM}.qcow2
+    exit 0
+fi
+
 if [ x"$INSTALL" == x"true" ]; then
-    if [ -z $VMNAME ] || [ -z $ISOPATH ] || [ -z $KSPATH ]; then
+    if [ -z ${PERVM} ] || [ -z $ISOPATH ] || [ -z $KSPATH ]; then
         usage
         exit 0
     fi
@@ -247,11 +274,11 @@ if [ x"$INSTALL" == x"true" ]; then
     run_cmd sudo mkdir -p $VMIMAGEDIR/images
 
     virt-install \
-      --name "$VMNAME" \
+      --name "${PERVM}" \
       --connect qemu:///system \
       --check-cpu --vcpus "$VCPUS" --arch x86_64 --virt-type kvm \
       --ram "$MEMORY_MB" \
-      --disk "$VMIMAGEDIR/images/$VMNAME.img,bus=virtio,size=${STORAGE_GB}" \
+      --disk "$VMIMAGEDIR/images/$PERVM.img,bus=virtio,size=${STORAGE_GB}" \
       --bridge "$BRIDGE" --mac "$MACADDR" \
       --watchdog default --graphics none \
       --autostart --force \
@@ -261,28 +288,28 @@ if [ x"$INSTALL" == x"true" ]; then
       --extra-args "console=tty0 console=ttyS0,115200n8 serial"
 
     # If not debug mode, connect to the VM for installation
-    #run_cmd virsh console "$VMNAME"
-    #run_cmd virsh start "$VMNAME"
+    #run_cmd virsh console "${PERVM}"
+    #run_cmd virsh start "${PERVM}"
 
     # Backup the VM's XML definition file
-    #sudo virsh dumpxml "$VMNAME" > "$VMIMAGEDIR/xml/$VMNAME.xml"
+    #sudo virsh dumpxml "${PERVM}" > "$VMIMAGEDIR/xml/${PERVM}.xml"
     exit 0
 fi
 
-if [ x"$DELETE" == x"true" ] && [ ! -z $VMNAME ]; then
-    if [ -f $VMIMAGEDIR/images/$VMNAME.img ]; then
-        run_cmd virsh destroy "$VMNAME"
-        run_cmd virsh undefine "$VMNAME" --remove-all-storage
+if [ x"$DELETE" == x"true" ] && [ ! -z ${PERVM} ]; then
+    if [ -f $VMIMAGEDIR/images/${PERVM}.img ]; then
+        run_cmd virsh destroy "${PERVM}"
+        run_cmd virsh undefine "${PERVM}" --remove-all-storage
         run_cmd sudo ls $VMIMAGEDIR/images/
-        run_cmd sudo rm $VMIMAGEDIR/images/$VMNAME.img
+        run_cmd sudo rm $VMIMAGEDIR/images/${PERVM}.img
     else
-        run_cmd virsh destroy "$VMNAME"
-        run_cmd virsh undefine "$VMNAME" --remove-all-storage
+        run_cmd virsh destroy "${PERVM}"
+        run_cmd virsh undefine "${PERVM}" --remove-all-storage
     fi
 
-    if [ -f $VMIMAGEDIR/xml/$VMNAME.xml ]; then
+    if [ -f $VMIMAGEDIR/xml/${PERVM}.xml ]; then
         run_cmd sudo ls $VMIMAGEDIR/xml/
-        run_cmd sudo rm $VMIMAGEDIR/xml/$VMNAME.xml
+        run_cmd sudo rm $VMIMAGEDIR/xml/${PERVM}.xml
     fi
 
     exit 0
