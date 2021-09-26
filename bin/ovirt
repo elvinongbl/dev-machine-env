@@ -1,63 +1,57 @@
 #!/bin/bash
 
-INSTALL=
-DELETE=
-CLONE=
-
-PERVM=
-ISOPATH=
-KSPATH=
-OSVARIANT=
-VCPUS=2
-MEMORY_MB=1024
-STORAGE_GB=20
-BRIDGE=virbr0
-MACADDR="RANDOM"
-
-PERVM_OPS=
-VOL_OPS=
-VOL_NAME=
-VOL_TARGET=
+COMMAND=$1
 
 VMIMAGEDIR=/var/lib/libvirt
+MACADDR=00:11:22:33:44:55
 
 function usage() {
 cat << EOF
-    ovirt [OPTIONS]
-    OPTIONS:
-        -H        Show help message
-        -S        Show vm list and net list
-        -O        Show supported os variant type
-        -M        Show miscellanous of virsh commands
+    ovirt COMMAND
+    COMMAND:
+        help        Show help message
+        show        Show vm list and net list
+        osinfo      Show supported os variant type
+        misc        Show miscellanous of virsh commands
 
-        -N <VM>   Control VM domain specific
-                    If <VM>=ALL, apply to all VMs
-          -x             Start Virtual Machine
-          -e             Stop  Virtual Machine
-          -t             Reboot Virtual Machine
-          -p             Suspend Virtual Machine
-          -m             Resume Virtual Machine
+        pervm <VM> SUBCOMMAND       Control VM domain specific.
+                                     If <VM>=all, apply to all VMs
+            SUBCOMMAND:
+                start       Start Virtual Machine
+                stop        Stop  Virtual Machine
+                reboot      Reboot Virtual Machine
+                suspend     Suspend Virtual Machine
+                resume      Resume Virtual Machine
 
-        -V <VM>    Manage storage volume for specific VM
-          -a               Add volume
-          -d               Delete volume
-          -v <vol name>    Specify volume name
-          -s <size>        Storage size in GB
-          -g <target name> Disk device target
+        vol <VM> SUBCOMMAND         Manage storage volume for
+                                     specific VM
+            SUBCOMMAND:
+                show               Show volume attached to vm
 
-        -C <Source VM> <New VM>   Clone VM name
+                add OPTIONS        Add volume
+                    -v <vol name>       Volume name
+                    -s <vol size>       Volume size
+                    -g <target>         Disk device target, e.g vdb
 
-        -I <VM>     Install new vm
-          -i        Full path of OS iso file
-          -o        OS variant
-          -k        Full path of OS installation kickstart file
-          -c        VCPUs count
-          -r        System Memory RAM size in MB
-          -s        Storage size in GB
-          -b        Bridge interface to use
-          -m        MAC address used by VM
+                del OPTIONS        Delete volume
+                    -v <vol name>       Volume name
 
-        -D <VM name>  Delete a vm
+                resize OPTIONS     Resize volume size
+                    -v <vol name>       Volume name
+                    -s +/-<vol resize>  Volume size increased
+
+        clone <Source VM> <Dest VM> Clone new VM
+
+        del <VM>                    Delete a VM
+
+        install <VM> OPTIONS        Install a new vm
+          -i ISOPATH       Full path of OS iso file
+          -o OSVARIAN      OS variant (Hint: ovirt osinfo)
+          -c VCPUCOUNT     VCPUs count
+          -r MEMSIZE       System Memory size in MB. Default: 1024
+          -s VOLSIZE       Storage size. Default: 20G
+          -b VIRBRIDGE     Bridge interface to use. Default: virbr0
+          -m MACADDR       MAC address used by VM. Default: ${MACADDR}
 EOF
 }
 
@@ -85,7 +79,7 @@ function ovirt_show() {
     run_cmd virsh list --all
     run_cmd virsh net-list
     run_cmd sudo virsh pool-list
-    run_cmd sudo virsh vol-list images
+    run_cmd sudo virsh vol-list images --details
 }
 
 function ovirt_osinfo() {
@@ -122,68 +116,18 @@ function ovirt_misc_cmd() {
     print_cmd "virsh snapshot-delete --domain <vm_name> --snapshotname <snapshot_name> \n"
 }
 
-while getopts "HSOMxetpmadIC:D:N:V:v:g:i:o:k:c:r:s:b:m:d" option; do
-    case "${option}"
-    in
-        H)
-            usage
-            exit 0
-            ;;
-        S)
-            ovirt_show
-            exit 0
-            ;;
-        O)
-            ovirt_osinfo
-            exit 0
-            ;;
-        M)
-            ovirt_misc_cmd
-            exit 0
-            ;;
-        N) PERVM=${OPTARG};;
-          x) PERVM_OPS=start;;
-          e) PERVM_OPS=stop;;
-          t) PERVM_OPS=reboot;;
-          p) PERVM_OPS=suspend;;
-          m) PERVM_OPS=resume;;
+function ovirt_pervm_ops() {
+    local op_done=false
 
-        V) PERVM=${OPTARG};;
-          a) VOL_OPS=add;;
-          d) VOL_OPS=delete;;
-          v) VOL_NAME=${OPTARG};;
-          g) VOL_TARGET=${OPTARG};;
-
-        C) CLONE=true
-          PERVM=${OPTARG}
-          ;;
-
-        D) DELETE=true
-          PERVM=${OPTARG}
-          ;;
-
-        I) INSTALL=true
-          PERVM=${OPTARG}
-          ;;
-          i) ISOPATH=${OPTARG};;
-          o) OSVARIANT=${OPTARG};;
-          k) KSPATH=${OPTARG};;
-          c) VCPUS=${OPTARG};;
-          r) MEMORY_MB=${OPTARG};;
-          s) STORAGE_GB=${OPTARG};;
-          b) BRIDGE=${OPTARG};;
-          m) MACADDR=${OPTARG};;
-    esac
-done
-
-if [ x"$PERVM_OPS" != x"" ] && [ x"$PERVM" != x"" ]; then
-    if [ x"$PERVM" == x"ALL" ]; then
+    # For pervm all <sub command>
+    if [ x"$PERVM" == x"all" ]; then
         if [ x"$PERVM_OPS" == x"start" ]; then
             VMLIST=$(sudo virsh list --all | grep "shut off" | awk '{print $2}')
             for VM in $VMLIST; do
                 run_cmd virsh start $VM
                 run_cmd virsh dominfo $VM
             done
+            op_done=true
         fi
         if [ x"$PERVM_OPS" == x"stop" ]; then
             VMLIST=$(sudo virsh list --all | grep "running" | awk '{print $2}')
@@ -192,78 +136,157 @@ if [ x"$PERVM_OPS" != x"" ] && [ x"$PERVM" != x"" ]; then
                 run_cmd sleep 10
                 run_cmd virsh dominfo $VM
             done
+            op_done=true
         fi
         if [ x"$PERVM_OPS" == x"reboot" ]; then
             VMLIST=$(sudo virsh list --all | grep "running" | awk '{print $2}')
             for VM in $VMLIST; do
                 run_cmd virsh reboot $VM
             done
+            op_done=true
         fi
         if [ x"$PERVM_OPS" == x"suspend" ]; then
             VMLIST=$(sudo virsh list --all | grep "running" | awk '{print $2}')
             for VM in $VMLIST; do
                 run_cmd virsh suspend $VM
             done
+            op_done=true
         fi
         if [ x"$PERVM_OPS" == x"resume" ]; then
             VMLIST=$(sudo virsh list --all | grep "paused" | awk '{print $2}')
             for VM in $VMLIST; do
                 run_cmd virsh resume $VM
             done
-        fi        
+            op_done=true
+        fi
     else
+        # For pervm <vm_name> <sub command>
         if [ x"$PERVM_OPS" == x"start" ]; then
             run_cmd virsh start $PERVM
             run_cmd virsh dominfo $PERVM
+            op_done=true
         fi
         if [ x"$PERVM_OPS" == x"stop" ]; then
             run_cmd virsh shutdown $PERVM
             run_cmd sleep 10
             run_cmd virsh dominfo $PERVM
+            op_done=true
         fi
         if [ x"$PERVM_OPS" == x"reboot" ]; then
-                run_cmd virsh reboot $PERVM
+            run_cmd virsh reboot $PERVM
+            op_done=true
         fi
         if [ x"$PERVM_OPS" == x"suspend" ]; then
-                run_cmd virsh suspend $PERVM
+            run_cmd virsh suspend $PERVM
+            op_done=true
         fi
         if [ x"$PERVM_OPS" == x"resume" ]; then
-                run_cmd virsh resume $PERVM
+            run_cmd virsh resume $PERVM
+            op_done=true
         fi
-    fi
-    exit 0
-fi
+    fi # End of pervm all <sub command>
 
-if [ x"$VOL_OPS" != x"" ] && [ x"$PERVM" != x"" ]; then
-    if [ x"$VOL_OPS" == x"add" ]; then
-        run_cmd sudo virsh vol-create-as images ${VOL_NAME}.qcow2 ${STORAGE_GB}
-        run_cmd sudo du -sh /var/lib/libvirt/images/${VOL_NAME}.qcow2
+    if [ x"${op_done}" == x"false" ]; then
+        usage
+    fi
+}
+
+function ovirt_vol_ops() {
+    op_done=false
+
+    if [ x"${VOL_OPS}" == x"show" ]; then
+        run_cmd virsh domblklist ${PERVM} --inactive --details
+        vol_list=$(virsh domblklist ${PERVM} --inactive --details | grep disk | awk '{print $4}')
+        for vol in $vol_list; do
+            volname=$(basename $vol)
+            run_cmd virsh vol-info --pool images $volname
+        done
+        op_done=true
+    fi
+
+    if [ x"${VOL_OPS}" == x"add" ] && [ x"${VOL_NAME}" != x"" ] && [ x"${VOL_TARGET}" != x"" ] && [ x"${STORAGE}" != x"" ]; then
+        run_cmd sudo virsh vol-create-as images ${VOL_NAME}.qcow2 ${STORAGE}
+        run_cmd sudo du -sh ${VMIMAGEDIR}/images/${VOL_NAME}.qcow2
         run_cmd sudo virsh attach-disk --domain ${PERVM} \
-                        --source /var/lib/libvirt/images/${VOL_NAME}.qcow2 \
+                        --source ${VMIMAGEDIR}/images/${VOL_NAME}.qcow2 \
                         --persistent --target ${VOL_TARGET}
         run_cmd sudo virsh pool-refresh images
         run_cmd sudo virsh vol-list images
+        op_done=true
     fi
-    if [ x"$VOL_OPS" == x"delete" ]; then
-        run_cmd sudo virsh detach-disk --domain ${PERVM} --persistent --live \
-                        --target ${VOL_TARGET}
+
+    if [ x"$VOL_OPS" == x"del" ] && [ x"${VOL_NAME}" != x"" ] && [ x"${VOL_TARGET}" != x"" ]; then
+        run_cmd sudo virsh detach-disk --domain ${PERVM} \
+                        --persistent --live --target ${VOL_TARGET}
         run_cmd sudo virsh vol-delete ${VOL_NAME}.qcow2 --pool images
         run_cmd sudo virsh pool-refresh images
         run_cmd sudo virsh vol-list images
+        op_done=true
     fi
-    exit 0
-fi
 
-if [ x"$CLONE" == x"true" ]; then
-    shift $((OPTIND -1))
-    NEWVM=$1
-    run_cmd sudo virt-clone --connect qemu:///system --original ${PERVM} --name ${NEWVM} \
-                    --file /var/lib/libvirt/images/${NEWVM}.qcow2
-    exit 0
-fi
+    if [ x"$VOL_OPS" == x"resize" ] && [ x"${VOL_NAME}" != x"" ] && [ x"${STORAGE}" != x"" ]; then
+        shrink=$(echo ${STORAGE} | grep '-' -c)
+        run_cmd sudo virsh detach-disk --domain ${PERVM} \
+                        --persistent --live --target ${VOL_TARGET}
+        # Wait for system detach disk completely
+        run_cmd sleep 5
+        if [ x"$shrink" == x"1" ]; then
+            run_cmd sudo qemu-img resize --shrink \
+                        ${VMIMAGEDIR}/images/${VOL_NAME}.qcow2 ${STORAGE}
+        else
+            run_cmd sudo qemu-img resize \
+                        ${VMIMAGEDIR}/images/${VOL_NAME}.qcow2 ${STORAGE}
+        fi
+        run_cmd sudo virsh attach-disk --domain ${PERVM} \
+                        --source ${VMIMAGEDIR}/images/${VOL_NAME}.qcow2 \
+                        --persistent --target ${VOL_TARGET}
+        op_done=true
+    fi
 
-if [ x"$INSTALL" == x"true" ]; then
-    if [ -z ${PERVM} ] || [ -z $ISOPATH ] || [ -z $KSPATH ]; then
+    if [ x"${op_done}" == x"false" ]; then
+        usage
+    fi
+}
+
+function ovirt_delete() {
+    if [ -f $VMIMAGEDIR/images/${PERVM}.img ]; then
+        run_cmd virsh destroy "${PERVM}"
+        run_cmd virsh undefine "${PERVM}" --remove-all-storage
+        run_cmd sudo ls $VMIMAGEDIR/images/
+        run_cmd sudo rm $VMIMAGEDIR/images/${PERVM}.img
+    else
+        run_cmd virsh destroy "${PERVM}"
+        run_cmd virsh undefine "${PERVM}" --remove-all-storage
+        run_cmd sudo ls $VMIMAGEDIR/images/
+    fi
+
+    if [ -f $VMIMAGEDIR/xml/${PERVM}.xml ]; then
+        run_cmd sudo rm $VMIMAGEDIR/xml/${PERVM}.xml
+        run_cmd sudo ls $VMIMAGEDIR/xml/
+    fi
+}
+
+function ovirt_install() {
+    VCPUS=2
+    MEMORY_MB=1024
+    STORAGE=20
+    BRIDGE=virbr0
+
+    while getopts "i:o:k:c:r:b:m:" option; do
+        case "${option}"
+        in
+          i) ISOPATH=${OPTARG};;
+          o) OSVARIANT=${OPTARG};;
+          k) KSPATH=${OPTARG};;
+          c) VCPUS=${OPTARG};;
+          r) MEMORY_MB=${OPTARG};;
+          s) STORAGE=${OPTARG};;
+          b) BRIDGE=${OPTARG};;
+          m) MACADDR=${OPTARG};;
+        esac
+    done
+
+    if [ -z ${PERVM} ] || [ -z $ISOPATH ]; then
         usage
         exit 0
     fi
@@ -278,7 +301,7 @@ if [ x"$INSTALL" == x"true" ]; then
       --connect qemu:///system \
       --check-cpu --vcpus "$VCPUS" --arch x86_64 --virt-type kvm \
       --ram "$MEMORY_MB" \
-      --disk "$VMIMAGEDIR/images/$PERVM.img,bus=virtio,size=${STORAGE_GB}" \
+      --disk "$VMIMAGEDIR/images/$PERVM.img,bus=virtio,size=${STORAGE}" \
       --bridge "$BRIDGE" --mac "$MACADDR" \
       --watchdog default --graphics none \
       --autostart --force \
@@ -293,25 +316,74 @@ if [ x"$INSTALL" == x"true" ]; then
 
     # Backup the VM's XML definition file
     #sudo virsh dumpxml "${PERVM}" > "$VMIMAGEDIR/xml/${PERVM}.xml"
+}
+
+if [ x"$COMMAND" == x"help" ] || [ x"$COMMAND" == x"" ]; then
+    usage
     exit 0
 fi
-
-if [ x"$DELETE" == x"true" ] && [ ! -z ${PERVM} ]; then
-    if [ -f $VMIMAGEDIR/images/${PERVM}.img ]; then
-        run_cmd virsh destroy "${PERVM}"
-        run_cmd virsh undefine "${PERVM}" --remove-all-storage
-        run_cmd sudo ls $VMIMAGEDIR/images/
-        run_cmd sudo rm $VMIMAGEDIR/images/${PERVM}.img
+if [ x"$COMMAND" == x"show" ]; then
+    ovirt_show
+    exit 0
+fi
+if [ x"$COMMAND" == x"osinfo" ]; then
+    ovirt_osinfo
+    exit 0
+fi
+if [ x"$COMMAND" == x"misc" ]; then
+    ovirt_misc_cmd
+    exit 0
+fi
+if [ x"$COMMAND" == x"pervm" ]; then
+    shift
+    PERVM=$1
+    PERVM_OPS=$2
+    if [ x"$PERVM_OPS" != x"" ] && [ x"$PERVM" != x"" ]; then
+        ovirt_pervm_ops
     else
-        run_cmd virsh destroy "${PERVM}"
-        run_cmd virsh undefine "${PERVM}" --remove-all-storage
+        usage
     fi
-
-    if [ -f $VMIMAGEDIR/xml/${PERVM}.xml ]; then
-        run_cmd sudo ls $VMIMAGEDIR/xml/
-        run_cmd sudo rm $VMIMAGEDIR/xml/${PERVM}.xml
+    exit 0
+fi
+if [ x"$COMMAND" == x"vol" ]; then
+    shift
+    PERVM=$1
+    VOL_OPS=$2
+    if [ x"$VOL_OPS" != x"" ] && [ x"$PERVM" != x"" ]; then
+        shift 2
+        while getopts "v:s:g:" option; do
+            case "${option}"
+            in
+              v) VOL_NAME=${OPTARG};;
+              g) VOL_TARGET=${OPTARG};;
+              s) STORAGE=${OPTARG};;
+            esac
+        done
+        ovirt_vol_ops
+    else
+        usage
     fi
-
+    exit 0
+fi
+if [ x"$COMMAND" == x"clone" ]; then
+    shift
+    PERVM=$1
+    NEWVM=$2
+    run_cmd sudo virt-clone --connect qemu:///system --original ${PERVM} --name ${NEWVM} \
+                    --file /var/lib/libvirt/images/${NEWVM}.qcow2
+    exit 0
+fi
+if [ x"$COMMAND" == x"del" ]; then
+    shift
+    PERVM=$1
+    ovirt_delete
+    exit 0
+fi
+if [ x"$COMMAND" == x"install" ]; then
+    shift
+    PERVM=$1
+    shift
+    ovirt_install
     exit 0
 fi
 
