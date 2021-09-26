@@ -26,6 +26,7 @@ cat << EOF
 
             Specific to VM:
                 setvcpus <count>   Set Virtual Machine vcpus count
+                setmem   <size>    Set Virtual Machine memory size
 
         vol <VM> SUBCOMMAND         Manage storage volume for
                                      specific VM
@@ -208,6 +209,15 @@ function ovirt_pervm_ops() {
             run_cmd virsh dominfo $PERVM
             op_done=true
         fi
+        if [ x"$PERVM_OPS" == x"setmem" ]; then
+            run_cmd virsh setmaxmem $PERVM $MEMSIZE --config
+            run_cmd virsh setmem $PERVM $MEMSIZE --config
+            run_cmd virsh shutdown $PERVM
+            run_cmd sleep 10
+            run_cmd virsh start $PERVM
+            run_cmd virsh dominfo $PERVM
+            op_done=true
+        fi
     fi # End of pervm all <sub command>
 
     if [ x"${op_done}" == x"false" ]; then
@@ -365,6 +375,9 @@ if [ x"$COMMAND" == x"pervm" ]; then
     if [ x"$PERVM_OPS" != x"" ] && [ x"$PERVM" != x"" ]; then
         if [ x"$PERVM_OPS" == x"setvcpus" ]; then
             VCPUSCOUNT=$3
+        fi
+        if [ x"$PERVM_OPS" == x"setmem" ]; then
+            MEMSIZE=$3
         fi
         ovirt_pervm_ops
     else
