@@ -22,6 +22,10 @@ cat << EOF
                 reboot      Reboot Virtual Machine
                 suspend     Suspend Virtual Machine
                 resume      Resume Virtual Machine
+                show        Show Virtual Machine info
+
+            Specific to VM:
+                setvcpus <count>   Set Virtual Machine vcpus count
 
         vol <VM> SUBCOMMAND         Manage storage volume for
                                      specific VM
@@ -159,6 +163,13 @@ function ovirt_pervm_ops() {
             done
             op_done=true
         fi
+        if [ x"$PERVM_OPS" == x"show" ]; then
+            VMLIST=$(sudo virsh list --all | awk '{print $2}')
+            for VM in $VMLIST; do
+                run_cmd virsh dominfo $VM
+            done
+            op_done=true
+        fi
     else
         # For pervm <vm_name> <sub command>
         if [ x"$PERVM_OPS" == x"start" ]; then
@@ -182,6 +193,19 @@ function ovirt_pervm_ops() {
         fi
         if [ x"$PERVM_OPS" == x"resume" ]; then
             run_cmd virsh resume $PERVM
+            op_done=true
+        fi
+        if [ x"$PERVM_OPS" == x"show" ]; then
+            run_cmd virsh dominfo $PERVM
+            op_done=true
+        fi
+        if [ x"$PERVM_OPS" == x"setvcpus" ]; then
+            run_cmd virsh setvcpus --domain $PERVM --maximum $VCPUSCOUNT --config
+            run_cmd virsh setvcpus --domain $PERVM --count $VCPUSCOUNT --config
+            run_cmd virsh shutdown $PERVM
+            run_cmd sleep 10
+            run_cmd virsh start $PERVM
+            run_cmd virsh dominfo $PERVM
             op_done=true
         fi
     fi # End of pervm all <sub command>
@@ -339,6 +363,9 @@ if [ x"$COMMAND" == x"pervm" ]; then
     PERVM=$1
     PERVM_OPS=$2
     if [ x"$PERVM_OPS" != x"" ] && [ x"$PERVM" != x"" ]; then
+        if [ x"$PERVM_OPS" == x"setvcpus" ]; then
+            VCPUSCOUNT=$3
+        fi
         ovirt_pervm_ops
     else
         usage
