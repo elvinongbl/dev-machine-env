@@ -27,6 +27,7 @@ cat << EOF
             Specific to VM:
                 setvcpus <count>   Set Virtual Machine vcpus count
                 setmem   <size>    Set Virtual Machine memory size
+                autostart on|off   Set Virtual Machine autostart option
 
         vol <VM> SUBCOMMAND         Manage storage volume for
                                      specific VM
@@ -218,6 +219,18 @@ function ovirt_pervm_ops() {
             run_cmd virsh dominfo $PERVM
             op_done=true
         fi
+        if [ x"$PERVM_OPS" == x"autostart" ]; then
+            if [ x"$AUTO" == x"on" ]; then
+                run_cmd virsh autostart $PERVM
+                run_cmd virsh dominfo $PERVM
+                op_done=true
+            fi
+            if [ x"$AUTO" == x"off" ]; then
+                run_cmd virsh autostart --disable $PERVM
+                run_cmd virsh dominfo $PERVM
+                op_done=true
+            fi
+        fi
     fi # End of pervm all <sub command>
 
     if [ x"${op_done}" == x"false" ]; then
@@ -378,6 +391,9 @@ if [ x"$COMMAND" == x"pervm" ]; then
         fi
         if [ x"$PERVM_OPS" == x"setmem" ]; then
             MEMSIZE=$3
+        fi
+        if [ x"$PERVM_OPS" == x"autostart" ]; then
+            AUTO=$3
         fi
         ovirt_pervm_ops
     else
