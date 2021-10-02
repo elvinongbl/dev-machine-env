@@ -101,7 +101,7 @@ COMMENT_VIRTUALMACHINE=" \
 # https://earlruby.org/2018/12/use-iso-and-kickstart-files-to-automatically-create-vms/
 PKGLIST_QEMU=" \
  qemu-kvm qemu virt-manager virt-viewer virtinst \
- libvirt-bin libvirt-clients libvirt-daemon libvirt-daemon-system \
+ libvirt-clients libvirt-daemon libvirt-daemon-system \
  libvirt-daemon-driver-storage-zfs \
  libosinfo-bin libguestfs-tools cpu-checker ssh-askpass-gnome \
  python3-libvirt \
@@ -110,6 +110,13 @@ PKGLIST_QEMU=" \
 "
 COMMENT_QEMU=" \
  Qemu/KVM tool \
+"
+
+PKGLIST_PM=" \
+ powertop \
+"
+COMMENT_PM=" \
+ Power Management tool \
 "
 
 function install_packages(){
@@ -146,6 +153,9 @@ function install_packages(){
 
     print_topic $COMMENT_QEMU
     run_cmd sudo apt install -y $PKGLIST_QEMU
+
+    print_topic $COMMENT_PM
+    run_cmd sudo apt install -y $PKGLIST_PM
 }
 
 ######################################
