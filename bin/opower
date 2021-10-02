@@ -1,0 +1,81 @@
+#!/bin/bash
+
+COMMAND=$1
+
+function usage() {
+cat << EOF
+    opwer COMMAND
+    COMMAND:
+        help        Show help message
+        aon         Set power management scheme to Always ON
+        saving      Set power management scheme to Saving Power according to default setting
+        status      Show power management scheme
+        top         Show powertop
+EOF
+}
+
+function print_topic() {
+    echo -e "\n# $@"
+}
+
+function run_cmd() {
+    COLOR='\033[0;36m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR\$ $@ $NCOLOR"
+    eval $@
+}
+
+function print_cmd() {
+    COLOR='\033[0;36m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR\$ $@ $NCOLOR"
+}
+
+function opower_top() {
+    print_topic "Start powertop monitoring utility"
+    run_cmd sudo powertop
+}
+
+function opower_aon() {
+    print_topic "Set power management scheme: Always ON"
+    run_cmd sudo systemctl mask sleep.target suspend.target \
+                                    hibernate.target hybrid-sleep.target
+}
+
+function opower_saving() {
+    print_topic "Set power management scheme: power saving"
+    run_cmd sudo systemctl unmask sleep.target suspend.target \
+                                    hibernate.target hybrid-sleep.target
+}
+
+function opower_show() {
+    print_topic "Show power management scheme:"
+    run_cmd sudo systemctl status sleep.target suspend.target \
+                                    hibernate.target hybrid-sleep.target
+}
+
+if [ x"$COMMAND" == x"help" ] || [ x"$COMMAND" == x"" ]; then
+    usage
+    exit 0
+fi
+if [ x"$COMMAND" == x"top" ]; then
+    opower_top
+    exit 0
+fi
+if [ x"$COMMAND" == x"aon" ]; then
+    opower_aon
+    exit 0
+fi
+if [ x"$COMMAND" == x"saving" ]; then
+    opower_saving
+    exit 0
+fi
+if [ x"$COMMAND" == x"show" ]; then
+    opower_show
+    exit 0
+fi
+
+usage
+
+# Good reference:-
+# https://www.tecmint.com/disable-suspend-and-hibernation-in-linux/
