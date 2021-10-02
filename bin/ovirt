@@ -11,6 +11,7 @@ cat << EOF
     COMMAND:
         help        Show help message
         show        Show vm list and net list
+        top         Show vm statistics using virt-top
         osinfo      Show supported os variant type
         misc        Show miscellanous of virsh commands
 
@@ -86,6 +87,11 @@ function ovirt_show() {
     run_cmd virsh net-list
     run_cmd sudo virsh pool-list
     run_cmd sudo virsh vol-list images --details
+}
+
+function ovirt_top() {
+    print_topic Show run-time stats about vm
+    run_cmd sudo virt-top
 }
 
 function ovirt_osinfo() {
@@ -379,6 +385,10 @@ if [ x"$COMMAND" == x"help" ] || [ x"$COMMAND" == x"" ]; then
 fi
 if [ x"$COMMAND" == x"show" ]; then
     ovirt_show
+    exit 0
+fi
+if [ x"$COMMAND" == x"top" ]; then
+    ovirt_top
     exit 0
 fi
 if [ x"$COMMAND" == x"osinfo" ]; then
