@@ -100,7 +100,7 @@ COMMENT_VIRTUALMACHINE=" \
 #
 # https://earlruby.org/2018/12/use-iso-and-kickstart-files-to-automatically-create-vms/
 PKGLIST_QEMU=" \
- qemu-kvm qemu virt-manager virt-viewer virtinst \
+ qemu-kvm qemu virt-manager virt-viewer virtinst virt-top \
  libvirt-clients libvirt-daemon libvirt-daemon-system \
  libvirt-daemon-driver-storage-zfs \
  libosinfo-bin libguestfs-tools cpu-checker ssh-askpass-gnome \
