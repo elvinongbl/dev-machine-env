@@ -120,6 +120,12 @@ function ovirt_misc_cmd() {
     print_cmd "virsh snapshot-revert --domain <vm_name> --snapshotname <snapshot_name> --running \n"
     print_topic To delete VM snapshot info
     print_cmd "virsh snapshot-delete --domain <vm_name> --snapshotname <snapshot_name> \n"
+    print_topic To list directory under a VM
+    print_cmd "virt-ls -l -d <vm_name> <directory>"
+    print_topic To cat a file under a VM
+    print_cmd "virt-cat -d <vm_name> <file_path>"
+    print_topic To edit a file under a VM
+    print_cmd "virt-edit -d <vm_name> <file_path>"
 }
 
 function ovirt_pervm_ops() {
@@ -248,6 +254,8 @@ function ovirt_vol_ops() {
             volname=$(basename $vol)
             run_cmd virsh vol-info --pool images $volname
         done
+        run_cmd sudo virt-df -d ${PERVM}
+        run_cmd sudo virt-filesystems -d ${PERVM} --all --long --uuid -h
         op_done=true
     fi
 
