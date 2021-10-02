@@ -26,6 +26,7 @@ cat << EOF
                 show        Show Virtual Machine info
 
             Specific to VM:
+                syslog             Show /var/log/messages of Virtual Machine
                 setvcpus <count>   Set Virtual Machine vcpus count
                 setmem   <size>    Set Virtual Machine memory size
                 autostart on|off   Set Virtual Machine autostart option
@@ -211,6 +212,10 @@ function ovirt_pervm_ops() {
         fi
         if [ x"$PERVM_OPS" == x"show" ]; then
             run_cmd virsh dominfo $PERVM
+            op_done=true
+        fi
+        if [ x"$PERVM_OPS" == x"syslog" ]; then
+            run_cmd sudo virt-log -d $PERVM | less
             op_done=true
         fi
         if [ x"$PERVM_OPS" == x"setvcpus" ]; then
