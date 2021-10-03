@@ -113,10 +113,11 @@ COMMENT_QEMU=" \
 "
 
 PKGLIST_PM=" \
- powertop \
+ powertop s-tui stress \
 "
 COMMENT_PM=" \
- Power Management tool \
+ Power Management tool. \
+ s-tui & stree for stress terminal GUI \
 "
 
 function install_packages(){
