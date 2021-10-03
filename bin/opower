@@ -7,11 +7,17 @@ cat << EOF
     opwer COMMAND
     COMMAND:
         help        Show help message
-        aon         Set power management scheme to Always ON
-        saving      Set power management scheme to Saving Power according to default setting
-        status      Show power management scheme
+        aon         Set device to Always ON (disable PM sleep scheme)
+        off         Set device to Off according to its PM sleep scheme
+        show        Show device PM sleep scheme
+
         top         Show powertop
         stui        Show s-tui (stress TUI)
+
+        cpufreq SUBCOMMAND
+            show                  Show cpu freq policy (in KHz) and governor
+            set-gov   <governor>  Set cpu freq governor
+            set-freq  <freq>      Set cpu freq
 EOF
 }
 
@@ -43,21 +49,46 @@ function opower_stui() {
 }
 
 function opower_aon() {
-    print_topic "Set power management scheme: Always ON"
+    print_topic "Set device to Always ON"
     run_cmd sudo systemctl mask sleep.target suspend.target \
                                     hibernate.target hybrid-sleep.target
 }
 
-function opower_saving() {
-    print_topic "Set power management scheme: power saving"
+function opower_off() {
+    print_topic "Set device to sleep per device PM policy"
     run_cmd sudo systemctl unmask sleep.target suspend.target \
                                     hibernate.target hybrid-sleep.target
 }
 
 function opower_show() {
-    print_topic "Show power management scheme:"
+    print_topic "Show device power management scheme:"
     run_cmd sudo systemctl status sleep.target suspend.target \
                                     hibernate.target hybrid-sleep.target
+}
+
+function opower_cpufreq() {
+    local op_done=false
+    if [ x"$SUBCOMD" == x"show" ]; then
+        print_topic "Show CPU freq governor info:"
+        run_cmd sudo cpupower frequency-info --driver
+        run_cmd sudo cpupower frequency-info --hwlimits
+        run_cmd sudo cpupower frequency-info --hwfreq
+        run_cmd sudo cpupower frequency-info --policy
+        op_done=true
+    fi
+    if [ x"$SUBCOMD" == x"set-gov" ]; then
+        print_topic "Set CPU freq governor: $ARG"
+        run_cmd sudo cpupower frequency-set --governor $ARG
+        op_done=true
+    fi
+    if [ x"$SUBCOMD" == x"set-freq" ]; then
+        print_topic "Set CPU freq: $ARG"
+        run_cmd sudo cpupower frequency-set --freq $ARG
+        op_done=true
+    fi
+    if [ x"${op_done}" == x"false" ]; then
+        usage
+    fi
 }
 
 if [ x"$COMMAND" == x"help" ] || [ x"$COMMAND" == x"" ]; then
@@ -76,12 +107,22 @@ if [ x"$COMMAND" == x"aon" ]; then
     opower_aon
     exit 0
 fi
-if [ x"$COMMAND" == x"saving" ]; then
-    opower_saving
+if [ x"$COMMAND" == x"off" ]; then
+    opower_off
     exit 0
 fi
 if [ x"$COMMAND" == x"show" ]; then
     opower_show
+    exit 0
+fi
+if [ x"$COMMAND" == x"cpufreq" ]; then
+    SUBCOMD=$2
+    ARG=$3
+    if [ x"$SUBCOMD" == x"show" ] || [ x"$SUBCOMD" == x"set-gov" ] || [ x"$SUBCOMD" == x"set-freq" ]; then
+        opower_cpufreq
+    else
+        usage
+    fi
     exit 0
 fi
 
@@ -90,3 +131,4 @@ usage
 # Good reference:-
 # https://www.tecmint.com/disable-suspend-and-hibernation-in-linux/
 # https://github.com/amanusk/s-tui
+# https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/power_management_guide/cpufreq_governors
