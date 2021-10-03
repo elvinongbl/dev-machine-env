@@ -11,6 +11,7 @@ cat << EOF
         saving      Set power management scheme to Saving Power according to default setting
         status      Show power management scheme
         top         Show powertop
+        stui        Show s-tui (stress TUI)
 EOF
 }
 
@@ -34,6 +35,11 @@ function print_cmd() {
 function opower_top() {
     print_topic "Start powertop monitoring utility"
     run_cmd sudo powertop
+}
+
+function opower_stui() {
+    print_topic "Start stress TUI (s-tui)"
+    run_cmd sudo s-tui
 }
 
 function opower_aon() {
@@ -62,6 +68,10 @@ if [ x"$COMMAND" == x"top" ]; then
     opower_top
     exit 0
 fi
+if [ x"$COMMAND" == x"stui" ]; then
+    opower_stui
+    exit 0
+fi
 if [ x"$COMMAND" == x"aon" ]; then
     opower_aon
     exit 0
@@ -79,3 +89,4 @@ usage
 
 # Good reference:-
 # https://www.tecmint.com/disable-suspend-and-hibernation-in-linux/
+# https://github.com/amanusk/s-tui
