@@ -30,6 +30,8 @@ cat << EOF
                 setvcpus <count>   Set Virtual Machine vcpus count
                 setmem   <size>    Set Virtual Machine memory size
                 autostart on|off   Set Virtual Machine autostart option
+                fs-mount           Mount Virtual disk to /mnt/<VM>-mnt
+                fs-umount          Unmount Virtual disk
 
         vol <VM> SUBCOMMAND         Manage storage volume for
                                      specific VM
@@ -78,6 +80,12 @@ function print_cmd() {
     COLOR='\033[0;36m'
     NCOLOR='\033[0m'
     echo -e "$COLOR\$ $@ $NCOLOR"
+}
+
+function print_warn() {
+    COLOR='\033[0;31m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR $@ $NCOLOR"
 }
 
 function ovirt_show() {
@@ -186,6 +194,19 @@ function ovirt_pervm_ops() {
             op_done=true
         fi
     else
+        VMFOUND=false
+        VMLIST=$(sudo virsh list --all | awk '{print $2}' | sed -e '1,2d')
+        for VM in $VMLIST; do
+            if [ x"$VM" == x"$PERVM" ]; then
+                VMFOUND=true
+                break
+            fi
+        done
+        if [ x"$VMFOUND" == x"false" ]; then
+            print_warn "$PERVM is not found in 'virsh list --all'"
+            exit 0
+        fi
+
         # For pervm <vm_name> <sub command>
         if [ x"$PERVM_OPS" == x"start" ]; then
             run_cmd virsh start $PERVM
@@ -247,6 +268,27 @@ function ovirt_pervm_ops() {
                 run_cmd virsh dominfo $PERVM
                 op_done=true
             fi
+        fi
+        if [ x"$PERVM_OPS" == x"fs-mount" ]; then
+            if [ ! -d /mnt/${PERVM}-fs ]; then
+                run_cmd sudo mkdir -p /mnt/${PERVM}-fs
+                run_cmd virsh shutdown $PERVM
+                run_cmd sleep 10
+                run_cmd virsh dominfo $PERVM
+                # /etc/fuse.conf must have 'user_allow_other'
+                run_cmd sudo guestmount -o allow_other -d $PERVM -i /mnt/${PERVM}-fs
+                print_topic "$PERVM filesystem mounted at /mnt/${PERVM}-fs"
+            else
+                print_topic "$PERVM filesystem already mounted at /mnt/${PERVM}-fs"
+            fi
+            op_done=true
+        fi
+        if [ x"$PERVM_OPS" == x"fs-umount" ]; then
+            run_cmd sudo guestunmount /mnt/${PERVM}-fs
+            run_cmd sudo rmdir /mnt/${PERVM}-fs
+            print_topic "$PERVM filesystem /mnt/${PERVM}-fs unmounted"
+            print_topic "To start VM, $ ovirt pervm $PERVM start"
+            op_done=true
         fi
     fi # End of pervm all <sub command>
 
