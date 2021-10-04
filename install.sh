@@ -243,6 +243,13 @@ function install_git_credential_manager_latest() {
     print_topic "Generate your github personal token and when you push commit, gcm will ask for token and store it"
 }
 
+function setup_fuse_conf() {
+    # To enable guestmount to mount virtual disk as root and access by
+    # other user.
+    print_topic "Make /etc/fuse.conf to allow other user"
+    run_cmd sudo sed -i "s|#user_allow_other|user_allow_other|g" /etc/fuse.conf
+}
+
 ######################################
 # Main installation flow
 ######################################
@@ -254,6 +261,7 @@ if [ x"$CHOICE" == x"all" ]; then
     install_helper_scripts
     setup_vncserver
     install_git_credential_manager_latest
+    setup_fuse_conf
 
     print_banner "Machine environment setup: COMPLETE."
     print_topic "Now, you may source ~/.bashrc to refresh"
