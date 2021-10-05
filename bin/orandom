@@ -1,0 +1,74 @@
+#!/bin/bash
+
+COMMAND=$1
+SILENT=$2
+
+VMIMAGEDIR=/var/lib/libvirt
+MACADDR=00:11:22:33:44:55
+
+function usage() {
+cat << EOF
+    orandom COMMAND [--silent|-s]
+    COMMAND:
+        help        Show help message
+        mac         Generate Randomized MAC address
+        uuid        Generate Randomized UUID
+EOF
+}
+
+function print_topic() {
+    if [ x"$SILENT" == x"-s" ] || [ x"$SILENT" == x"--silent" ]; then
+        return
+    else
+        echo -e "# $@"
+    fi
+}
+
+function run_cmd() {
+    COLOR='\033[0;36m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR\$ $@ $NCOLOR"
+    eval $@
+}
+
+function print_cmd() {
+    COLOR='\033[0;36m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR\$ $@ $NCOLOR"
+}
+
+function print_warn() {
+    COLOR='\033[0;31m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR $@ $NCOLOR"
+}
+
+function orandom_mac() {
+    print_topic Generate Random MAC address
+    MAC=$(echo -n 00:60:2F; \
+          dd bs=1 count=3 if=/dev/random 2> /dev/null | hexdump -v -e '/1 ":%02X"')
+    echo -e "$MAC"
+}
+
+function orandom_uuid() {
+    print_topic Generate Random UUID
+    echo -e "$(uuidgen)"
+}
+
+if [ x"$COMMAND" == x"help" ] || [ x"$COMMAND" == x"" ]; then
+    usage
+    exit 0
+fi
+if [ x"$COMMAND" == x"mac" ]; then
+    orandom_mac
+    exit 0
+fi
+if [ x"$COMMAND" == x"uuid" ]; then
+    orandom_uuid
+    exit 0
+fi
+
+usage
+
+# Good reference:-
+# https://superuser.com/questions/218340/how-to-generate-a-valid-random-mac-address-with-bash-shell/218372
