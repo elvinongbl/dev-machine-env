@@ -54,6 +54,13 @@ cat << EOF
 
         del <VM>                    Delete a VM
 
+        net SUBCOMMAND              Manage network of virtual machines
+            SUBCOMANND:
+                dumpxml <network>   Dump VM network XML
+                listxml             List VM network XML
+                add <network>       Add VM network
+                del <network>       Delete VM network
+
         install <VM> OPTIONS        Install a new vm
           -i ISOPATH       Full path of OS iso file
           -o OSVARIAN      OS variant (Hint: ovirt osinfo)
@@ -426,6 +433,36 @@ function ovirt_install() {
     #sudo virsh dumpxml "${PERVM}" > "$VMIMAGEDIR/xml/${PERVM}.xml"
 }
 
+function ovirt_net() {
+    local op_done=false
+    if [ x"$NET_OPS" == x"dumpxml" ]; then
+        run_cmd mkdir -p $HOME/workspace/virsh-xml/network
+        run_cmd "virsh net-dumpxml $NETNAME > $HOME/workspace/virsh-xml/network/$NETNAME.xml"
+        run_cmd cat $HOME/workspace/virsh-xml/network/$NETNAME.xml
+        op_done=true
+    fi
+    if [ x"$NET_OPS" == x"listxml" ]; then
+        run_cmd ls -al $HOME/workspace/virsh-xml/network
+        op_done=true
+    fi
+    if [ x"$NET_OPS" == x"add" ]; then
+        run_cmd virsh net-define $HOME/workspace/virsh-xml/network/$NETNAME.xml
+        run_cmd virsh net-start $NETNAME
+        run_cmd virsh net-autostart $NETNAME
+        run_cmd virsh net-list
+        op_done=true
+    fi
+    if [ x"$NET_OPS" == x"del" ]; then
+        run_cmd virsh net-undefine $NETNAME
+        run_cmd virsh net-destroy $NETNAME
+        run_cmd virsh net-list
+        op_done=true
+    fi
+    if [ x"${op_done}" == x"false" ]; then
+        usage
+    fi
+}
+
 if [ x"$COMMAND" == x"help" ] || [ x"$COMMAND" == x"" ]; then
     usage
     exit 0
@@ -484,6 +521,13 @@ if [ x"$COMMAND" == x"vol" ]; then
     else
         usage
     fi
+    exit 0
+fi
+if [ x"$COMMAND" == x"net" ]; then
+    shift
+    NET_OPS=$1
+    NETNAME=$2
+    ovirt_net
     exit 0
 fi
 if [ x"$COMMAND" == x"clone" ]; then
