@@ -63,6 +63,16 @@ cat << EOF
                 xmldump <network>   Dump VM network XML
                 xmlshow <network>   Show VM network XML
 
+        bridge SUBCOMMAND           Manage network bridge on host
+               SUBCOMMAND:
+               add <bridge>          Create a bridge
+               del <bridge>          Delete bridge
+               show                  Show information of all bridges
+               show <bridge>         Show bridge info
+               addif <bridge> <vnic> Create TAP (L2 virtual NIC) device
+               delif <bridge> <vnic> Delete TAP (L2 virtual NIC) device
+               showif <bridge>      Show VNICs that are attached to bridge
+
         install <VM> OPTIONS        Install a new vm
           -i ISOPATH       Full path of OS iso file
           -o OSVARIAN      OS variant (Hint: ovirt osinfo)
@@ -479,6 +489,60 @@ function ovirt_net() {
     fi
 }
 
+function ovirt_bridge() {
+    local op_done=false
+
+    if [ x"$BRIDGE_OPS" == x"add" ] && [ x"$BRIDGE" != x"" ]; then
+        run_cmd sudo brctl addbr $BRIDGE
+        run_cmd sudo brctl show
+        op_done=true
+    fi
+    if [ x"$BRIDGE_OPS" == x"del" ] && [ x"$BRIDGE" != x"" ]; then
+        run_cmd sudo ip link set $BRIDGE down
+        run_cmd sudo brctl delbr $BRIDGE
+        run_cmd sudo brctl show
+        op_done=true
+    fi
+    if [ x"$BRIDGE_OPS" == x"show" ]; then
+        if [ x"$BRIDGE" == x"" ]; then
+            run_cmd sudo brctl show
+            run_cmd sudo ip link show type bridge
+        else
+            run_cmd sudo brctl show $BRIDGE
+            run_cmd sudo ip link show type bridge dev $BRIDGE
+            run_cmd sudo ip link show master $BRIDGE
+            run_cmd sudo brctl showmacs $BRIDGE
+            run_cmd sudo brctl showstp $BRIDGE
+        fi
+        op_done=true
+    fi
+    if [ x"$BRIDGE_OPS" == x"addif" ] && [ x"$BRIDGE" != x"" ] && [ x"$BRDEV" != x"" ]; then
+        run_cmd sudo ip tuntap add dev $BRDEV mode tap
+        sleep 1
+        run_cmd sudo ip link show $BRDEV
+        run_cmd sudo ip link set $BRIDGE down
+        run_cmd sudo brctl addif $BRIDGE $BRDEV
+        run_cmd sudo ip link set $BRIDGE up
+        run_cmd sudo brctl show $BRIDGE
+        op_done=true
+    fi
+    if [ x"$BRIDGE_OPS" == x"delif" ] && [ x"$BRIDGE" != x"" ] && [ x"$BRDEV" != x"" ]; then
+            run_cmd sudo ip link set $BRIDGE down
+            run_cmd sudo brctl delif $BRIDGE $BRDEV
+            run_cmd sudo ip tuntap del dev $BRDEV mode tap
+            run_cmd sudo ip link set $BRIDGE up
+            run_cmd sudo brctl show $BRIDGE
+            op_done=true
+    fi
+    if [ x"$BRIDGE_OPS" == x"showif" ] && [ x"$BRIDGE" != x"" ]; then
+            run_cmd sudo ip link show master $BRIDGE
+            op_done=true
+    fi
+    if [ x"${op_done}" == x"false" ]; then
+        usage
+    fi
+}
+
 if [ x"$COMMAND" == x"help" ] || [ x"$COMMAND" == x"" ]; then
     usage
     exit 0
@@ -546,6 +610,14 @@ if [ x"$COMMAND" == x"net" ]; then
     ovirt_net
     exit 0
 fi
+if [ x"$COMMAND" == x"bridge" ]; then
+    shift
+    BRIDGE_OPS=$1
+    BRIDGE=$2
+    BRDEV=$3
+    ovirt_bridge
+    exit 0
+fi
 if [ x"$COMMAND" == x"clone" ]; then
     shift
     PERVM=$1
@@ -573,3 +645,4 @@ usage
 # Good reference:-
 # https://blog.programster.org/kvm-cheatsheet
 # https://linux.die.net/man/1/virt-install
+# https://www.thegeekstuff.com/2017/06/brctl-bridge/
