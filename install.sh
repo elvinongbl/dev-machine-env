@@ -107,6 +107,7 @@ PKGLIST_QEMU=" \
  python3-libvirt \
  vagrant-libvirt vagrant-sshfs \
  bridge-utils \
+ openvswitch-switch \
 "
 COMMENT_QEMU=" \
  Qemu/KVM tool \
