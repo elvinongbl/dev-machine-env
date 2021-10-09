@@ -56,10 +56,12 @@ cat << EOF
 
         net SUBCOMMAND              Manage network of virtual machines
             SUBCOMANND:
-                dumpxml <network>   Dump VM network XML
-                listxml             List VM network XML
+                show                Show VM network
                 add <network>       Add VM network
                 del <network>       Delete VM network
+                xmllist             List VM network XML
+                xmldump <network>   Dump VM network XML
+                xmlshow <network>   Show VM network XML
 
         install <VM> OPTIONS        Install a new vm
           -i ISOPATH       Full path of OS iso file
@@ -435,14 +437,28 @@ function ovirt_install() {
 
 function ovirt_net() {
     local op_done=false
-    if [ x"$NET_OPS" == x"dumpxml" ]; then
-        run_cmd mkdir -p $HOME/workspace/virsh-xml/network
-        run_cmd "virsh net-dumpxml $NETNAME > $HOME/workspace/virsh-xml/network/$NETNAME.xml"
-        run_cmd cat $HOME/workspace/virsh-xml/network/$NETNAME.xml
+
+    if [ x"$NET_OPS" == x"show" ]; then
+        run_cmd virsh net-list
         op_done=true
     fi
-    if [ x"$NET_OPS" == x"listxml" ]; then
+    if [ x"$NET_OPS" == x"xmldump" ]; then
+        run_cmd mkdir -p $HOME/workspace/virsh-xml/network
+        DUMP=$(virsh net-dumpxml $NETNAME)
+        if [ x"$DUMP" != x"" ]; then
+            run_cmd "virsh net-dumpxml $NETNAME > $HOME/workspace/virsh-xml/network/$NETNAME.xml"
+            run_cmd cat $HOME/workspace/virsh-xml/network/$NETNAME.xml
+        else
+            run_cmd "virsh net-dumpxml $NETNAME"
+        fi
+        op_done=true
+    fi
+    if [ x"$NET_OPS" == x"xmllist" ]; then
         run_cmd ls -al $HOME/workspace/virsh-xml/network
+        op_done=true
+    fi
+    if [ x"$NET_OPS" == x"xmlshow" ]; then
+        run_cmd cat $HOME/workspace/virsh-xml/network/$NETNAME.xml
         op_done=true
     fi
     if [ x"$NET_OPS" == x"add" ]; then
