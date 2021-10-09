@@ -73,6 +73,16 @@ cat << EOF
                delif <bridge> <vnic> Delete TAP (L2 virtual NIC) device
                showif <bridge>      Show VNICs that are attached to bridge
 
+        ovs   SUBCOMMAND            Manage Open vSwitch
+              SUBCOMMAND:
+              lsbr                       List OVS bridge
+              addbr <bridge> <IP addr>   Add a OVS bridge
+              delbr <bridge>             Delete a OVS bridge
+              lsports <bridge>           Show OVS bridge ports (uplink and vnic)
+              addup <bridge> <devname>   Add devname as OVS uplink port
+              delup <bridge> <devname>   Delete devname as OVS uplink port
+              setport <devname> vlanid <id>  Set OVS port vlan ID
+
         install <VM> OPTIONS        Install a new vm
           -i ISOPATH       Full path of OS iso file
           -o OSVARIAN      OS variant (Hint: ovirt osinfo)
@@ -543,6 +553,56 @@ function ovirt_bridge() {
     fi
 }
 
+function ovirt_ovs() {
+    local op_done=false
+
+    if [ x"$OVS_OPS" == x"addbr" ] && [ x"$OVSBR" != x"" ] && [ x"$OVSIP" != x"" ]; then
+        run_cmd sudo ovs-vsctl add-br $OVSBR
+        run_cmd sudo ovs-vsctl list-br
+        # Set the IP address to OVS control plane
+        run_cmd sudo ip addr add $OVSIP/24 dev $OVSBR
+        run_cmd sudo ip link set dev $OVSBR up
+        op_done=true
+    fi
+    if [ x"$OVS_OPS" == x"delbr" ] && [ x"$OVSBR" != x"" ]; then
+        run_cmd sudo ip link set dev $OVSBR down
+        run_cmd sudo ovs-vsctl del-br $OVSBR
+        run_cmd sudo ovs-vsctl list-br
+        op_done=true
+    fi
+    if [ x"$OVS_OPS" == x"lsbr" ]; then
+        run_cmd sudo ovs-vsctl list-br
+        op_done=true
+    fi
+    if [ x"$OVS_OPS" == x"lsports" ] && [ x"$OVSBR" != x"" ]; then
+        run_cmd sudo ovs-vsctl list-ports $OVSBR
+        op_done=true
+    fi
+    if [ x"$OVS_OPS" == x"addup" ] && [ x"$OVSBR" != x"" ] && [ x"$OVSUPORT" != x"" ]; then
+        run_cmd sudo ip link set dev $OVSBR down
+        run_cmd sudo ovs-vsctl add-port $OVSBR $OVSUPORT
+        run_cmd sudo ovs-vsctl list-ports $OVSBR
+        run_cmd sudo ip link set dev $OVSBR up
+        op_done=true
+    fi
+    if [ x"$OVS_OPS" == x"delup" ] && [ x"$OVSBR" != x"" ] && [ x"$OVSUPORT" != x"" ]; then
+        run_cmd sudo ip link set dev $OVSBR down
+        run_cmd sudo ovs-vsctl del-port $OVSBR $OVSUPORT
+        run_cmd sudo ovs-vsctl list-ports $OVSBR
+        run_cmd sudo ip link set dev $OVSBR up
+        op_done=true
+    fi
+    if [ x"$OVS_OPS" == x"setport" ] && [ x"$OVSPORT" != x"" ] && [ x"$OVS_SUBOPS" == x"vlanid" ] && [ ${OVS_VLANID} -gt 0 ]; then
+        run_cmd sudo ip link set dev $OVSPORT down
+        run_cmd sudo ovs-vsctl set port $OVSPORT tag=${OVS_VLANID}
+        run_cmd sudo ip link set dev $OVSPORT up
+        op_done=true
+    fi
+    if [ x"${op_done}" == x"false" ]; then
+        usage
+    fi
+}
+
 if [ x"$COMMAND" == x"help" ] || [ x"$COMMAND" == x"" ]; then
     usage
     exit 0
@@ -616,6 +676,25 @@ if [ x"$COMMAND" == x"bridge" ]; then
     BRIDGE=$2
     BRDEV=$3
     ovirt_bridge
+    exit 0
+fi
+if [ x"$COMMAND" == x"ovs" ]; then
+    shift
+    OVS_OPS=$1
+    OVSBR=$2
+    if [ x"$OVS_OPS" == x"addbr" ]; then
+        OVSIP=$3
+    fi
+    if [ x"$OVS_OPS" == x"addup" ] || [ x"$OVS_OPS" == x"delup" ]; then
+        OVSUPORT=$3
+    fi
+    if [ x"$OVS_OPS" == x"setport" ]; then
+        OVSBR=
+        OVSPORT=$2
+        OVS_SUBOPS=$3
+        OVS_VLANID=$4
+    fi
+    ovirt_ovs
     exit 0
 fi
 if [ x"$COMMAND" == x"clone" ]; then
