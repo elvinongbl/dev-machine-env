@@ -2,9 +2,44 @@
 
 CHOICE=$1
 
-function usage(){
-    echo -e "  $ osystem cpu|cpukhz|thermal"
-    echo -e "  $ osystem help"
+function usage() {
+cat << EOF
+    osystem COMMAND
+    COMMAND:
+        help        Show help message
+        cpu         Show CPU information (model, count & frequency)
+        cpukhz      Show CPU runtime Mhz using i7z
+        thermal     Show CPU thermal zone and trip-point
+EOF
+}
+
+function print_topic() {
+    NCOLOR='\033[0m'
+    echo -e "\n${NCOLOR}# $@ ${NCOLOR}"
+}
+
+function print_line() {
+    NCOLOR='\033[0m'
+    echo -e "${NCOLOR}==========================================${NCOLOR}"
+}
+
+function run_cmd() {
+    COLOR='\033[0;36m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR\$ $@ $NCOLOR"
+    eval $@
+}
+
+function print_cmd() {
+    COLOR='\033[0;36m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR\$ $@ $NCOLOR"
+}
+
+function print_warn() {
+    COLOR='\033[0;31m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR $@ $NCOLOR"
 }
 
 function acat() {
@@ -16,16 +51,13 @@ function acat() {
     fi
 }
 
-function print_line() {
-    echo "=========================================="
-}
-
 function osystem_cpu() {
     local tmpfile=~/.tmpcpuinfo
     print_line
-    sudo cat /etc/lsb-release
+    run_cmd sudo cat /etc/lsb-release
     print_line
 
+    print_cmd sudo cat /proc/cpuinfo
     sudo cat /proc/cpuinfo > $tmpfile
     model_name=$(cat $tmpfile | grep "model name" -m 1)
     processor_count=$(cat $tmpfile | grep "processor" -c)
@@ -43,7 +75,7 @@ function osystem_cpu() {
 function osystem_cpukhz() {
     # print CPU khz run-time on current terminal
     # i7z understands i3, i5 & i7 CPU
-    sudo i7z
+    run_cmd sudo i7z
 }
 
 function osystem_thermal() {
@@ -60,7 +92,7 @@ function osystem_thermal() {
         local cur_state=$(acat $devpath/cur_state)
         local max_state=$(acat $devpath/max_state)
 
-        printf "%8d\t%8s\t%s\t%8d\t%8d\n" $i $type $modalias $cur_stat $max_state
+        printf "%8d\t%8s\t%s\t%8s\t%8s\n" $i $type $modalias $cur_state $max_state
     done
 
     printf "\nThemZone\tType\t\tTmpr\n"
