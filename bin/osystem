@@ -10,6 +10,9 @@ cat << EOF
         cpu         Show CPU information (model, count & frequency)
         cpukhz      Show CPU runtime Mhz using i7z
         thermal     Show CPU thermal zone and trip-point
+        list        Show platform hardware
+        list CLASS  Show platform hardware, filter by class
+                    Note: CLASS is listed in lshw -short
 EOF
 }
 
@@ -120,6 +123,16 @@ function osystem_thermal() {
     done
 }
 
+function osystem_list_hw() {
+    local CLASS=$1
+    if [ x"$CLASS" == x"" ]; then
+        run_cmd sudo lshw -short
+    fi
+    if [ x"$CLASS" != x"" ]; then
+        run_cmd sudo lshw -C $CLASS
+    fi
+}
+
 if [ $# -eq 0 ]; then
     echo -e "Invalid input or usage"
     usage
@@ -138,6 +151,12 @@ fi
 
 if [ x"$CHOICE" == x"thermal" ]; then
     osystem_thermal
+    exit
+fi
+
+if [ x"$CHOICE" == x"list" ]; then
+    CLASS=$2
+    osystem_list_hw $CLASS
     exit
 fi
 
