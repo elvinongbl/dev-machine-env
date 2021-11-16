@@ -1,6 +1,7 @@
 #!/bin/bash
 #
 # ./install.sh all work|home
+# ./install.sh myenv work|home
 # ./install.sh mycmd
 # ./install.sh package
 
@@ -9,6 +10,7 @@ MODE=$2
 
 function usage() {
     echo -e "./install.sh all work|home"
+    echo -e "./install.sh myenv work|home"
     echo -e "./install.sh mycmd"
     echo -e "./install.sh package"
 }
@@ -282,4 +284,16 @@ if [ x"$CHOICE" == x"package" ]; then
     print_banner "Install: package (Software Package)"
     install_packages
     print_topic "Install: package : Completed"
+fi
+
+if [ x"$CHOICE" == x"myenv" ]; then
+    print_banner "Install: myenv (Development environment)"
+    setup_misc
+    setup_vncserver
+    install_git_credential_manager_latest
+    setup_fuse_conf
+
+    print_banner "Machine environment setup: COMPLETE."
+    print_topic "Now, you may source ~/.bashrc to refresh"
+    print_topic "Next, you may generate ssh key-pair: ssh-keygen -t ed25519 -C \"someone@gmail.com\" "
 fi
