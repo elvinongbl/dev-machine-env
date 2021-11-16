@@ -43,23 +43,18 @@ function install_dwarves() {
 }
 
 # https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git/tree/Documentation/bpf/bpf_devel_QA.rst
+# https://llvm.org/docs/GettingStarted.html#getting-the-source-code-and-building-llvm
 function install_llvm() {
     if [ -d $HOME/public-repos/llvm-project ]; then
        run_cmd sudo apt install ninja-build
        run_cmd CWD=$(pwd)
-       run_cmd cd $HOME/public-repos/llvm-project/llvm/
+       run_cmd cd $HOME/public-repos/llvm-project/
        run_cmd mkdir -p build
        run_cmd cd build
-       print_cmd 'cmake .. -G "Ninja" -DLLVM_TARGETS_TO_BUILD="BPF;X86" -DLLVM_ENABLE_PROJECTS="clang" -DCMAKE_BUILD_TYPE=Release -DLLVM_BUILD_RUNTIME=OFF'
-       cmake .. -G "Ninja" -DLLVM_TARGETS_TO_BUILD="BPF;X86" -DLLVM_ENABLE_PROJECTS="clang" -DCMAKE_BUILD_TYPE=Release -DLLVM_BUILD_RUNTIME=OFF
+       print_cmd 'cmake ../llvm -G "Ninja" -DLLVM_TARGETS_TO_BUILD="BPF;X86" -DLLVM_ENABLE_PROJECTS="clang" -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi" -DCMAKE_INSTALL_PREFIX="/usr/local" -DCMAKE_BUILD_TYPE=Release -DLLVM_BUILD_RUNTIME=OFF'
+       cmake ../llvm -G "Ninja" -DLLVM_TARGETS_TO_BUILD="BPF;X86" -DLLVM_ENABLE_PROJECTS="clang" -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi" -DCMAKE_INSTALL_PREFIX="/usr/local" -DCMAKE_BUILD_TYPE=Release -DLLVM_BUILD_RUNTIME=OFF
        run_cmd ninja
-
-       llvm_in_path=$(echo $PATH | grep -c llvm)
-       if [ x"$llvm_in_path" == x"0" ]; then
-            print_cmd "echo -e 'export PATH=$HOME/public-repos/llvm-project/llvm/build/bin:$PATH' >> $HOME/.bash_aliases"
-            echo -e 'export PATH=$HOME/public-repos/llvm-project/llvm/build/bin:$PATH' >> $HOME/.bash_aliases
-            run_cmd source $HOME/.bashrc
-       fi
+       run_cmd sudo ninja install
        run_cmd which llc
        run_cmd llc --version
        run_cmd cd $CWD
@@ -69,5 +64,12 @@ function install_llvm() {
     fi
 }
 
+function setup_linux_bpf_env() {
+       # To build linux/samples/bpf, we need below software package
+       run_cmd sudo apt install -y libcap-dev
+}
+
 install_dwarves
 install_llvm
+setup_linux_bpf_env
+
