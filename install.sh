@@ -63,7 +63,7 @@ PKGLIST_DEVTOOL=" \
  texinfo unzip \
  wget xterm xz-utils xsltproc xmlto \
  cmake p7zip-full p7zip-rar \
- squashfs-tools \
+ squashfs-tools rpm \
 "
 COMMENT_DEVTOOL="Development tools:"
 
