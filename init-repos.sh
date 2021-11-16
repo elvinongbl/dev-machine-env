@@ -28,6 +28,7 @@ PUBLIC_REPOS=" \
     https://github.com/bristot/rtsl.git \
     https://git.kernel.org/pub/scm/utils/trace-cmd/trace-cmd.git \
     https://github.com/mirror/busybox.git \
+    https://github.com/nmap/nmap.git \
 "
 
 BPFXDP_REPOS=" \
