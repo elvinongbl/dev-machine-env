@@ -190,6 +190,8 @@ function setup_misc(){
 
     print_topic "Create workspace"
     run_cmd mkdir -p $HOME/workspace
+    print_topic "Create mender-cpio folder to Yocto Project initramfs"
+    run_cmd mkdir -p $HOME/workspace/mender-cpio
 }
 
 ######################################
