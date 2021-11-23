@@ -1,0 +1,35 @@
+#!/bin/bash
+
+usage() {
+cat << EOF
+  $ bcheckpatch START_ID END_ID : Check patch series
+  $ bcheckpatch                 : Check HEAD patch
+  $ bcheckpatch help            : Print usage
+EOF
+}
+
+if [ x"$1" == x"help" ]; then
+    usage
+    exit
+fi
+
+if [ x"$1" != x"" ]; then
+    START=$1
+fi
+
+if [ x"$2" != x"" ]; then
+    END=$2
+fi
+
+rm -rf patch-check
+
+if [ x"$START" == x"" -o x"$END" == x"" ]; then
+    echo -e "Checking HEAD patch"
+    git format-patch -1 -o patch-check
+else
+    echo -e "Checking from $START to $END"
+    git format-patch $START..$END -o patch-check
+fi
+
+# https://github.com/codespell-project/codespell/issues/1540
+./scripts/checkpatch.pl --strict --codespell --codespellfile /usr/lib/python3/dist-packages/codespell_lib/data/dictionary.txt  patch-check/*.patch
