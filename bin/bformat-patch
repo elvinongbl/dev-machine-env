@@ -1,0 +1,159 @@
+#!/bin/bash
+
+# Patch formatting for: netdev net
+#
+# bformat-patch ML STARTID ENDID SERIES_VER SERIES_NAME
+#     ML = ("net" "net-next" "bpf-net")
+
+usage() {
+cat << EOF
+  $ bformat-patch TYPE ML STARTID ENDID SERIES_VER SERIES_NAME
+      Where:
+        TYPE        : PATCH or RFC
+        ML          : net, net-next, bpf & bpf-next
+        STARTID     : Start commit ID
+        ENDID       : End commit ID
+        SERIES_VER  : 1 or higher
+        SERIES_NAME : E.g., xdp-tbs
+
+  $ bformat-patch help
+EOF
+}
+
+if [ x"$1" == x"help" ] || [ x"$1" == x"" ]; then
+  usage
+  exit
+fi
+
+KNOWNTYPE=("PATCH" "RFC")
+KNOWNML=("net" "net-next" "bpf" "bpf-next")
+
+PATCHTYPE=$1
+ML=$2
+START_ID=$3
+END_ID=$4
+SERIES_VER=$5
+SERIES_NAME=$6
+
+FOUNDTYPE=0
+for i in ${!KNOWNTYPE[@]}; do
+    if [ x"$PATCHTYPE" == x"${KNOWNTYPE[$i]}" ]; then
+      FOUNDTYPE=1
+      break
+    fi
+done
+
+if [ $FOUNDTYPE -eq 0 ]; then
+  echo "Error: Invalid Patch Type=$PATCHTYPE. Choose: ${KNOWNTYPE[@]}"
+  usage
+  exit
+fi
+
+FOUNDML=0
+for i in ${!KNOWNML[@]}; do
+    if [ x"$ML" == x"${KNOWNML[$i]}" ]; then
+      FOUNDML=1
+      break
+    fi
+done 
+
+if [ $FOUNDML -eq 0 ]; then
+  echo "Error: Invalid ML=$ML. Choose: ${KNOWNML[@]}"
+  usage
+  exit
+fi
+
+if [ x"$START_ID" == x"" ] || [ x"$END_ID" == x"" ]; then
+  echo "Error: Invalid ID ranges [$START_ID $END_ID]"
+  usage
+  exit
+fi
+
+if [ $SERIES_VER -lt 1 ]; then
+  echo "Error: Invalid series version = $SERIES_VER. Must be >= 1"
+  usage
+  exit
+fi
+
+if [ x"$SERIES_NAME" == x"" ]; then
+  echo "Error: Invalid series name = $SERIES_NAME"
+  usage
+  exit
+fi
+
+gen_sendemail_net() {
+cat << EOF > $1
+#!/bin/bash
+
+# ./EXT-${ML}-<topic>.sh <folder> to send all patch series
+# ./EXT-${ML}-<topic>.sh <folder>/0001-XYZ.patch to send a patch
+
+git send-email \$1 \\
+--to="netdev@vger.kernel.org" \\
+--cc="Giuseppe Cavallaro <peppe.cavallaro@st.com>" \\
+--cc="Alexandre Torgue <alexandre.torgue@st.com>" \\
+--cc="Jose Abreu <joabreu@synopsys.com>" \\
+--cc="David S. Miller <davem@davemloft.net>" \\
+--cc="Jakub Kicinski <kuba@kernel.org>" \\
+--cc="Maxime Coquelin <mcoquelin.stm32@gmail.com>" \\
+--cc="alexandre.torgue@foss.st.com" \\
+--cc="linux-stm32@st-md-mailman.stormreply.com" \\
+--cc="linux-arm-kernel@lists.infradead.org" \\
+--cc="Ong Boon Leong <boon.leong.ong@intel.com>"
+EOF
+}
+
+gen_sendemail_xdp() {
+cat << EOF > $1
+#!/bin/bash
+
+# ./EXT-${ML}-<topic>.sh <folder> to send all patch series
+# ./EXT-${ML}-<topic>.sh <folder>/0001-XYZ.patch to send a patch
+
+git send-email \$1 \\
+--to="bpf@vger.kernel.org" \\
+--to="netdev@vger.kernel.org" \\
+--cc="bjorn@kernel.org" \\
+--cc="Magnus Karlsson <magnus.karlsson@intel.com>" \\
+--cc="Jonathan Lemon <jonathan.lemon@gmail.com>" \\
+--cc="Alexei Starovoitov <ast@kernel.org>" \\
+--cc="Daniel Borkmann <daniel@iogearbox.net>" \\
+--cc="David S. Miller <davem@davemloft.net>" \\
+--cc="Jakub Kicinski <kuba@kernel.org>" \\
+--cc="Jesper Dangaard Brouer <hawk@kernel.org>" \\
+--cc="John Fastabend <john.fastabend@gmail.com>" \\
+--cc="Andrii Nakryiko <andrii@kernel.org>" \\
+--cc="Martin KaFai Lau <kafai@fb.com>" \\
+--cc="Song Liu <songliubraving@fb.com>" \\
+--cc="Yonghong Song <yhs@fb.com>" \\
+--cc="KP Singh <kpsingh@kernel.org>" \\
+--cc="Ong Boon Leong <boon.leong.ong@intel.com>"
+EOF
+}
+
+SENDNAME=EXT-${ML}-${SERIES_NAME}-sendemail.sh
+PATCHDIR=EXT-${ML}-${SERIES_NAME}-v${SERIES_VER}
+
+if [ x"$SERIES_VER" == x"1" ]; then
+    git format-patch ${START_ID}..${END_ID} --cover-letter --subject-prefix="$PATCHTYPE $ML" -o $PATCHDIR
+    if [ x"$ML" == x"net" ] || [ x"$ML" == x"net-next" ]; then
+        gen_sendemail_net $SENDNAME
+    fi
+    if [ x"$ML" == x"bpf" ] || [ x"$ML" == x"bpf-next" ]; then
+        gen_sendemail_xdp $SENDNAME
+    fi
+    chmod a+x $SENDNAME
+else
+    git format-patch ${START_ID}..${END_ID} --cover-letter --subject-prefix="$PATCHTYPE $ML v${SERIES_VER}" -o $PATCHDIR
+fi
+
+echo "Show maintainer list and PLEASE cross check if $SENDNAME is READY"
+echo "==============================================================================================================="
+
+SERIES=$(ls -1 $PATCHDIR -I0000-cover-letter.patch)
+for patch in $SERIES; do
+  echo -e "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+  echo -e "For $patch:"
+  ./scripts/get_maintainer.pl $PATCHDIR/$patch | sed -e "s# (#\t\t\t(#g"
+  echo -e "----------------------------------------------------------------------------------------------------------"
+done
