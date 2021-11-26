@@ -47,6 +47,7 @@ COMMENT_EDIT="Editing: vim-nox|nano (text editing); tree (directory show)"
 PKGLIST_COMMS=" \
  socat openssh-server tightvncserver \
  xfce4 xfce4-goodies \
+ connect-proxy \
  putty \
 "
 COMMENT_COMMS="Comms: vncserver & setup xfce (lightweight vnc session);"
