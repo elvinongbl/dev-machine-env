@@ -100,7 +100,7 @@ function git_clone_repos() {
         else
             echo -e "${NCOLOR}Detected ... $DESTDIR/$reponame"
             run_cmd cd $DESTDIR/$reponame
-            run_cmd git pull
+            run_cmd git pull --rebase
             run_cmd cd ..
         fi
     done
