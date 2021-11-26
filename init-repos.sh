@@ -30,6 +30,7 @@ PUBLIC_REPOS=" \
     https://github.com/mirror/busybox.git \
     https://github.com/nmap/nmap.git \
     https://github.com/a-j-wood/pv.git \
+    https://github.com/lldpd/lldpd.git \
 "
 
 BPFXDP_REPOS=" \
