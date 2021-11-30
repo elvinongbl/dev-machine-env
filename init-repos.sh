@@ -31,6 +31,7 @@ PUBLIC_REPOS=" \
     https://github.com/nmap/nmap.git \
     https://github.com/a-j-wood/pv.git \
     https://github.com/lldpd/lldpd.git \
+    https://github.com/DPDK/dpdk.git \
 "
 
 BPFXDP_REPOS=" \
