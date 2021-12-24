@@ -37,6 +37,9 @@ PUBLIC_REPOS=" \
 BPFXDP_REPOS=" \
     https://github.com/xdp-project/xdp-project.git \
     https://github.com/xdp-project/xdp-tutorial.git \
+    https://github.com/xdp-project/bpf-examples.git \
+    https://github.com/xdp-project/xdp-tools.git \
+    https://github.com/xdp-project/xdp-cpumap-tc.git \
     https://github.com/libbpf/libbpf.git \
     https://git.kernel.org/pub/scm/linux/kernel/git/bpf/bpf-next.git \
     https://git.kernel.org/pub/scm/linux/kernel/git/bpf/bpf.git \
