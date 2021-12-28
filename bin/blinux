@@ -1,0 +1,197 @@
+#!/bin/bash
+
+COMMAND=$1
+MARCH=$2
+
+function usage() {
+cat << EOF
+    blinux COMMAND [march]
+    COMMAND:
+        help        Show help message
+        all         Build all
+        modules     Build kernel modules
+        tar         Build kernel tarxz-pkg
+        deb         Build kernel debian-pkg
+        rpm         Build kernel rpm-pkg
+        bpf         Build samples/bpf
+        tools       Build kernel tools
+        headers     Install Linux kernel headers
+        clean       Clean Linux kernel build artifacts
+EOF
+}
+
+function print_topic() {
+    if [ x"$SILENT" == x"-s" ] || [ x"$SILENT" == x"--silent" ]; then
+        return
+    else
+        echo -e "# $@"
+    fi
+}
+
+function run_cmd() {
+    COLOR='\033[0;36m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR\$ $@ $NCOLOR"
+    eval $@
+}
+
+function print_cmd() {
+    COLOR='\033[0;36m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR\$ $@ $NCOLOR"
+}
+
+function print_warn() {
+    COLOR='\033[0;31m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR $@ $NCOLOR"
+}
+
+function check_kconfig() {
+	local KCONFIG=$1
+	HAS_KCONFIG=$(grep "$KCONFIG" -c .config)
+	if [ $HAS_KCONFIG -eq 1 ]; then
+		echo "DETECTED: $KCONFIG"
+	else
+		echo "!!! Please set $KCONFIG"
+		exit 1
+	fi
+}
+
+function kconfig_dependency() {
+	# check_kconfig 'CONFIG_DEBUG_KMEMLEAK_TEST=m'
+	check_kconfig 'CONFIG_INITRAMFS_SOURCE="/home/sashimi/workspace/mender-cpio/mender-initramfs-ehl-2020.cpio.bz2"'
+	check_kconfig 'CONFIG_USB_ETH=m'
+	check_kconfig 'CONFIG_NET_PKTGEN=m'
+	# BPF settings
+	check_kconfig 'CONFIG_BPF=y'
+	check_kconfig 'CONFIG_BPF_JIT=y'
+	check_kconfig 'CONFIG_BPF_SYSCALL=y'
+	check_kconfig 'CONFIG_BPF_EVENTS=y'
+	check_kconfig 'CONFIG_DEBUG_INFO_BTF=y'
+	check_kconfig 'CONFIG_NET_CLS_BPF=m'
+	check_kconfig 'CONFIG_NET_ACT_BPF=m'
+}
+
+function blinux_all() {
+    print_topic Build all
+    run_cmd ARCH=$MARCH make -j32
+}
+
+function blinux_modules() {
+    print_topic Build kernel modules
+    run_cmd ARCH=$MARCH make -j32 W=1 modules
+}
+
+function blinux_tar() {
+    print_topic Build kernel tarxz-pkg
+    run_cmd ARCH=$MARCH make -j32 tarxz-pkg
+}
+
+function blinux_deb() {
+    print_topic Build kernel deb-pkg
+    run_cmd ARCH=$MARCH make -j32 deb-pkg
+}
+
+function blinux_rpm() {
+    print_topic Build kernel tarxz-pkg
+    run_cmd ARCH=$MARCH make -j32 rpm-pkg
+}
+
+function blinux_bpf() {
+    # Reference: https://www.kernel.org/doc/readme/samples-bpf-README.rst
+    #
+    # samples/bpf/xdpsock_user.c:27:10: fatal error: sys/capability.h: No such file or directory
+    # #include <sys/capability.h>
+    # sudo apt-get install libcap-dev
+    print_topic Build samples/bpf
+    ARCH=$MARCH make M=samples/bpf
+}
+
+function blinux_headers() {
+    print_topic Install kernel headers
+    run_cmd ARCH=$MARCH make headers_install
+}
+
+function blinux_clean() {
+    print_topic Clean kernel build artifact
+    run_cmd ARCH=$MARCH make -j32 -C tools clean
+    run_cmd ARCH=$MARCH make -j32 -C samples/bpf clean
+    run_cmd ARCH=$MARCH make -j32 clean
+}
+
+function blinux_tools() {
+    #Builds tools folder
+    # software dependency: sudo apt install libpci-dev libpopt-dev
+    # To check on what other smaller option, goto Linux directory, run "ARCH=x86 make -C tools"
+    ARCH=x86 make tools/all
+    ARCH=x86 make tools/install
+}
+
+function blinux_sanity() {
+    print_topic Build for kernel sanity check
+
+    run_cmd cp .config .config_sanity_backup
+
+    run_cmd ARCH=$MARCH make -j32 allmodconfig
+
+    run_cmd ARCH=$MARCH make -j32 allyesconfig
+
+    run_cmd rm -rf nohup.out
+    run_cmd ARCH=$MARCH nohup make -j32 W=1 C=2
+
+    print_cmd '# Manual step to check for issue ...'
+    print_cmd 'cat nohup.out | grep "stmmac\|pcs"'
+
+    run_cmd cp .config_sanity_backup .config
+}
+
+if [ x"$COMMAND" == x"help" ] || [ x"$COMMAND" == x"" ]; then
+    usage
+    exit 0
+fi
+
+if [ x"$MARCH" == x"" ]; then
+    MARCH=x86
+fi
+
+# Make sure kernel config meets dev expectation
+kconfig_dependency
+
+if [ x"$COMMAND" == x"all" ]; then
+    blinux_all
+    exit 0
+fi
+if [ x"$COMMAND" == x"modules" ]; then
+    blinux_modules
+    exit 0
+fi
+if [ x"$COMMAND" == x"rpm" ]; then
+    blinux_rpm
+    exit 0
+fi
+if [ x"$COMMAND" == x"tar" ]; then
+    blinux_tar
+    exit 0
+fi
+if [ x"$COMMAND" == x"deb" ]; then
+    blinux_deb
+    exit 0
+fi
+if [ x"$COMMAND" == x"bpf" ]; then
+    blinux_bpf
+    exit 0
+fi
+if [ x"$COMMAND" == x"tools" ]; then
+    blinux_tools
+    exit 0
+fi
+if [ x"$COMMAND" == x"headers" ]; then
+    blinux_headers
+    exit 0
+fi
+if [ x"$COMMAND" == x"clean" ]; then
+    blinux_clean
+    exit 0
+fi
+usage
