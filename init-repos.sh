@@ -33,6 +33,8 @@ PUBLIC_REPOS=" \
     https://github.com/lldpd/lldpd.git \
     https://github.com/DPDK/dpdk.git \
     https://github.com/wireshark/wireshark.git \
+    https://github.com/the-tcpdump-group/tcpdump \
+    https://github.com/the-tcpdump-group/libpcap \
 "
 
 BPFXDP_REPOS=" \
