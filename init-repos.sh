@@ -32,6 +32,7 @@ PUBLIC_REPOS=" \
     https://github.com/a-j-wood/pv.git \
     https://github.com/lldpd/lldpd.git \
     https://github.com/DPDK/dpdk.git \
+    https://github.com/wireshark/wireshark.git \
 "
 
 BPFXDP_REPOS=" \
