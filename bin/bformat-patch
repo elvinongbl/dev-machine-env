@@ -89,14 +89,14 @@ cat << EOF > $1
 # ./EXT-${ML}-<topic>.sh <folder>/0001-XYZ.patch to send a patch
 
 git send-email \$1 \\
---to="netdev@vger.kernel.org" \\
---cc="Giuseppe Cavallaro <peppe.cavallaro@st.com>" \\
---cc="Alexandre Torgue <alexandre.torgue@st.com>" \\
---cc="Jose Abreu <joabreu@synopsys.com>" \\
---cc="David S. Miller <davem@davemloft.net>" \\
---cc="Jakub Kicinski <kuba@kernel.org>" \\
---cc="Maxime Coquelin <mcoquelin.stm32@gmail.com>" \\
---cc="alexandre.torgue@foss.st.com" \\
+--to="Alexandre Torgue <alexandre.torgue@st.com>" \\
+--to="Jose Abreu <joabreu@synopsys.com>" \\
+--to="David S. Miller <davem@davemloft.net>" \\
+--to="Jakub Kicinski <kuba@kernel.org>" \\
+--to="Maxime Coquelin <mcoquelin.stm32@gmail.com>" \\
+--to="alexandre.torgue@foss.st.com" \\
+--to="Giuseppe Cavallaro <peppe.cavallaro@st.com>" \\
+--cc="netdev@vger.kernel.org" \\
 --cc="linux-stm32@st-md-mailman.stormreply.com" \\
 --cc="linux-arm-kernel@lists.infradead.org" \\
 --cc="Ong Boon Leong <boon.leong.ong@intel.com>"
@@ -111,22 +111,22 @@ cat << EOF > $1
 # ./EXT-${ML}-<topic>.sh <folder>/0001-XYZ.patch to send a patch
 
 git send-email \$1 \\
---to="bpf@vger.kernel.org" \\
---to="netdev@vger.kernel.org" \\
---cc="bjorn@kernel.org" \\
---cc="Magnus Karlsson <magnus.karlsson@intel.com>" \\
---cc="Jonathan Lemon <jonathan.lemon@gmail.com>" \\
---cc="Alexei Starovoitov <ast@kernel.org>" \\
---cc="Daniel Borkmann <daniel@iogearbox.net>" \\
---cc="David S. Miller <davem@davemloft.net>" \\
---cc="Jakub Kicinski <kuba@kernel.org>" \\
---cc="Jesper Dangaard Brouer <hawk@kernel.org>" \\
---cc="John Fastabend <john.fastabend@gmail.com>" \\
---cc="Andrii Nakryiko <andrii@kernel.org>" \\
---cc="Martin KaFai Lau <kafai@fb.com>" \\
---cc="Song Liu <songliubraving@fb.com>" \\
---cc="Yonghong Song <yhs@fb.com>" \\
---cc="KP Singh <kpsingh@kernel.org>" \\
+--to="bjorn@kernel.org" \\
+--to="Magnus Karlsson <magnus.karlsson@intel.com>" \\
+--to="Jonathan Lemon <jonathan.lemon@gmail.com>" \\
+--to="Alexei Starovoitov <ast@kernel.org>" \\
+--to="Daniel Borkmann <daniel@iogearbox.net>" \\
+--to="David S. Miller <davem@davemloft.net>" \\
+--to="Jakub Kicinski <kuba@kernel.org>" \\
+--to="Jesper Dangaard Brouer <hawk@kernel.org>" \\
+--to="John Fastabend <john.fastabend@gmail.com>" \\
+--to="Andrii Nakryiko <andrii@kernel.org>" \\
+--to="Martin KaFai Lau <kafai@fb.com>" \\
+--to="Song Liu <songliubraving@fb.com>" \\
+--to="Yonghong Song <yhs@fb.com>" \\
+--to="KP Singh <kpsingh@kernel.org>" \\
+--cc="bpf@vger.kernel.org" \\
+--cc="netdev@vger.kernel.org" \\
 --cc="Ong Boon Leong <boon.leong.ong@intel.com>"
 EOF
 }
