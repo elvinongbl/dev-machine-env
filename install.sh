@@ -58,7 +58,8 @@ COMMENT_SYSTEM="System: i7z (system monitor);"
 PKGLIST_DEVTOOL=" \
  bc bison build-essential cpio chrpath \
  dblatex debianutils diffstat docbook-utils \
- exuberant-ctags flex fop gawk git git-email gcc-multilib iputils-ping \
+ exuberant-ctags flex fop gawk git git-email tig \
+ gcc-multilib iputils-ping \
  libegl1-mesa libsdl1.2-dev libncurses5-dev libssl-dev libelf-dev \
  python3 python3-pip python3-pexpect python3-git python3-jinja2 pylint3 \
  texinfo unzip \
