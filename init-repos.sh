@@ -25,8 +25,6 @@ PUBLIC_REPOS=" \
     https://git.kernel.org/pub/scm/network/ethtool/ethtool.git \
     https://github.com/llvm/llvm-project.git \
     https://github.com/open62541/open62541.git \
-    https://github.com/bristot/rtsl.git \
-    https://git.kernel.org/pub/scm/utils/trace-cmd/trace-cmd.git \
     https://github.com/mirror/busybox.git \
     https://github.com/nmap/nmap.git \
     https://github.com/a-j-wood/pv.git \
@@ -81,6 +79,13 @@ VT_REPOS=" \
     https://github.com/qemu/qemu.git
 "
 
+TRACING_REPOS=" \
+    git://git.kernel.org/pub/scm/libs/libtrace/libtraceevent.git \
+    git://git.kernel.org/pub/scm/libs/libtrace/libtracefs.git \
+    https://github.com/bristot/rtsl.git \
+    https://git.kernel.org/pub/scm/utils/trace-cmd/trace-cmd.git \
+"
+
 function run_cmd() {
     COLOR='\033[0;36m'
     NCOLOR='\033[0m'
@@ -122,3 +127,4 @@ git_clone_repos ~/public-repos/oss-bpf $BPFXDP_REPOS
 git_clone_repos ~/public-repos/oss-netconf $NETCONF_REPOS
 git_clone_repos ~/public-repos/oss-learning $LEARNING_REPOS
 git_clone_repos ~/public-repos/oss-virtualization $VT_REPOS
+git_clone_repos ~/public-repos/oss-tracing $TRACING_REPOS
