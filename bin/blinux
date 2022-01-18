@@ -17,6 +17,19 @@ cat << EOF
         tools       Build kernel tools
         headers     Install Linux kernel headers
         clean       Clean Linux kernel build artifacts
+
+    blinux pw [SUBCMD] [ML] [SERIES]
+        SUBCMD:
+        apply        Apply patch series from patch-work
+        download     Download patch series in mbox format
+
+        Note: For netdev, look up series number by hovering over the 'series' button
+              from https://patchwork.kernel.org/project/netdevbpf/list
+
+    blinux pw list [ML] <OPTION>
+        OPTION:
+        --limit N                     List latest N patches
+        --submitter name@email.com    List patches from an email
 EOF
 }
 
@@ -146,6 +159,35 @@ function blinux_sanity() {
     run_cmd cp .config_sanity_backup .config
 }
 
+function blinux_pw_apply_download() {
+    local SUBCMD=$1
+    local ML=$2
+    local SERIES=$3
+
+    if [ x"$ML" == x"netdev" ]; then
+        run_cmd git-pw --server https://patchwork.kernel.org/api/1.2 --project netdevbpf series $SUBCMD $SERIES
+    else
+        usage
+        print_warn "ERROR: New \"ML=$ML\" used. Need to setup the --server and --project for it"
+        exit 0
+    fi
+}
+
+function blinux_pw_list() {
+    local SUBCMD=$1
+    local ML=$2
+    shift 2
+    local OPTION=$@
+
+    if [ x"$ML" == x"netdev" ]; then
+        run_cmd git-pw --server https://patchwork.kernel.org/api/1.2 --project netdevbpf series list $OPTION
+    else
+        usage
+        print_warn "ERROR: New \"ML=$ML\" used. Need to setup the --server and --project for it"
+        exit 0
+    fi
+}
+
 if [ x"$COMMAND" == x"help" ] || [ x"$COMMAND" == x"" ]; then
     usage
     exit 0
@@ -153,6 +195,26 @@ fi
 
 if [ x"$MARCH" == x"" ]; then
     MARCH=x86
+fi
+
+if [ x"$COMMAND" == x"pw" ]; then
+    SUBCMD=$2
+    ML=$3
+
+    if [ x"$SUBCMD" == x"apply" ] || [ x"$SUBCMD" == x"download" ]; then
+        SERIES=$4
+        blinux_pw_apply_download $SUBCMD $ML $SERIES
+        exit 0
+    fi
+
+    if [ x"$SUBCMD" == x"list" ]; then
+        shift 3
+        OPTION=$@
+        blinux_pw_list $SUBCMD $ML $OPTION
+        exit 0
+    fi
+    usage
+    exit 0
 fi
 
 # Make sure kernel config meets dev expectation
