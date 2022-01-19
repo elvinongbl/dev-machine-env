@@ -61,30 +61,53 @@ function print_warn() {
 }
 
 function check_kconfig() {
-	local KCONFIG=$1
-	HAS_KCONFIG=$(grep "$KCONFIG" -c .config)
-	if [ $HAS_KCONFIG -eq 1 ]; then
-		echo "DETECTED: $KCONFIG"
-	else
-		echo "!!! Please set $KCONFIG"
-		exit 1
-	fi
+    local KCONFIG1=$1
+    local KCONFIG2=$2
+
+    HAS_KCONFIG1=$(grep "$KCONFIG1" -c .config)
+    HAS_KCONFIG2=$(grep "$KCONFIG2" -c .config)
+
+    if [ $HAS_KCONFIG1 -eq 1 ]; then
+         echo "DETECTED: $KCONFIG1"
+    fi
+    if [ $HAS_KCONFIG2 -eq 1 ]; then
+        echo "DETECTED: $KCONFIG2"
+    fi
+    if [ $HAS_KCONFIG1 -eq 0 ] && [ $HAS_KCONFIG2 -eq 0 ]; then
+        echo "!!! Please set $KCONFIG1 or $KCONFIG2"
+        exit 1
+    fi
 }
 
 function kconfig_dependency() {
-	# check_kconfig 'CONFIG_DEBUG_KMEMLEAK_TEST=m'
-	check_kconfig 'CONFIG_INITRAMFS_SOURCE="/home/sashimi/workspace/mender-cpio/mender-initramfs-ehl-2020.cpio.bz2"'
-	check_kconfig 'CONFIG_USB_ETH=m'
-	check_kconfig 'CONFIG_NET_PKTGEN=m'
-	# BPF settings
-	check_kconfig 'CONFIG_BPF=y'
-	check_kconfig 'CONFIG_BPF_JIT=y'
-	check_kconfig 'CONFIG_BPF_SYSCALL=y'
-	check_kconfig 'CONFIG_BPF_EVENTS=y'
-	check_kconfig 'CONFIG_DEBUG_INFO_BTF=y'
-	check_kconfig 'CONFIG_NET_CLS_BPF=m'
-	check_kconfig 'CONFIG_NET_ACT_BPF=m'
+    # check_kconfig 'CONFIG_DEBUG_KMEMLEAK_TEST=m'
+    check_kconfig 'CONFIG_INITRAMFS_SOURCE="/home/sashimi/workspace/mender-cpio/mender-initramfs-ehl-2020.cpio.bz2"'
+    check_kconfig 'CONFIG_NET_PKTGEN=m' 'CONFIG_NET_PKTGEN=y'
+    # Make sure we have USB-Eth dongle support
+    check_kconfig 'CONFIG_USB_ETH=m' 'CONFIG_USB_ETH=y'
+    check_kconfig 'CONFIG_USB_NET_DRIVERS=m' 'CONFIG_USB_NET_DRIVERS=y'
+    check_kconfig 'CONFIG_USB_RTL8150=m' 'CONFIG_USB_RTL8150=y'
+    check_kconfig 'CONFIG_USB_RTL8152=m' 'CONFIG_USB_RTL8152=y'
+    check_kconfig 'CONFIG_USB_USBNET=m' 'CONFIG_USB_USBNET=y'
+    check_kconfig 'CONFIG_USB_NET_AX8817X=m' 'CONFIG_USB_NET_AX8817X=y'
+    check_kconfig 'CONFIG_USB_NET_AX88179_178A=m' 'CONFIG_USB_NET_AX88179_178A=y'
+    check_kconfig 'CONFIG_USB_NET_CDCETHER=m' 'CONFIG_USB_NET_CDCETHER=y'
+    # BPF settings
+    check_kconfig 'CONFIG_BPF=y'
+    check_kconfig 'CONFIG_BPF_JIT=y'
+    check_kconfig 'CONFIG_BPF_SYSCALL=y'
+    check_kconfig 'CONFIG_BPF_EVENTS=y'
+    check_kconfig 'CONFIG_DEBUG_INFO_BTF=y'
+    check_kconfig 'CONFIG_NET_CLS_BPF=m'
+    check_kconfig 'CONFIG_NET_ACT_BPF=m'
 }
+
+#CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
+#CONFIG_USB_DYNAMIC_MINORS=y
+#CONFIG_USB_OHCI_HCD=y
+#CONFIG_USB_OHCI_HCD_PCI=y
+#CONFIG_USB_SERIAL_SIMPLE=m
+
 
 function blinux_all() {
     print_topic Build all
