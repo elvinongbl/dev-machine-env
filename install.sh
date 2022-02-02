@@ -227,8 +227,8 @@ function setup_vncserver() {
 ######################################
 function install_helper_scripts() {
     print_banner "Install helper scripts"
-    run_cmd mkdir -p $HOME/common/bin
-    run_cmd cp ./bin/*    $HOME/common/bin/
+    run_cmd mkdir -p $HOME/common/bin/include
+    run_cmd cp -r ./bin    $HOME/common/
 }
 
 ######################################
