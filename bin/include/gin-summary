@@ -1,0 +1,241 @@
+#!/bin/bash
+
+function summary_gin() {
+cat << EOF
+
+    Summary of GIN
+    ==============
+    Gin is HTTP web framework written in Go [1]. It is used for:-
+     - route requests
+     - retrieve request details
+     - marshal JSON for responses.
+    Gin is very fast due to httprouter [2].
+
+    Work Flow
+    =========
+    1) Design and define HTTP API endpoints. Example [3]:
+
+        /albums
+        GET – Get a list of all albums, returned as JSON.
+        POST – Add a new album from request data sent as JSON.
+
+        /albums/:id
+        GET – Get an album by its ID, returning the album data as JSON.
+
+    2) Decide where the data is stored, e.g. program memory or databse.
+
+    3) Design and initialize the data struct to hold the data stores.
+       Example [3]:
+
+        // album represents data about a record album.
+        type album struct {
+            ID     string  \`json:"id"\`
+            Title  string  \`json:"title"\`
+            Artist string  \`json:"artist"\`
+            Price  float64 \`json:"price"\`
+        }
+
+        // albums slice to seed record album data.
+        var albums = []album{
+            {ID: "1", Title: "Blue Train", Artist: "John Coltrane", Price: 56.99},
+            {ID: "2", Title: "Jeru", Artist: "Gerry Mulligan", Price: 17.99},
+            {ID: "3", Title: "Sarah Vaughan and Clifford Brown", Artist: "Sarah Vaughan", Price: 39.99},
+        }
+
+    4) Implement the handler for HTTP GET for end-point.
+       Example [3]:
+
+        // getAlbums responds with the list of all albums as JSON.
+        //   - gin.Context : carries request details, validates and
+                             serializes JSON.
+        //   - Context.IndentedJSON: to serialize the struct into JSON and
+        //                           add it to the response
+        func getAlbums(c *gin.Context) {
+            c.IndentedJSON(http.StatusOK, albums)
+        }
+
+    5) Bind GET HTTP method.
+       Example [3]:
+
+        func main() {
+            router := gin.Default()
+            /* Bind GET HTTP method for /albums endpoint.
+            * Note that you’re passing the name of the getAlbums function.
+            */
+            router.GET("/albums", getAlbums)
+
+            router.Run("localhost:8080")
+        }
+
+    6) Update the import package to include gin
+       Example [3]:
+
+        import (
+            "github.com/gin-gonic/gin"
+            "net/http"
+        )
+
+    7) Update go dependency and run
+       $ go mod tidy
+       $ go run .
+
+    8) Test your http server either by web-browser or curl
+       Example [3]:
+       Web: URL  http://localhost:8080/albums OR,
+       $ curl http://localhost:8080/albums
+
+            [
+                {
+                    "id": "1",
+                    "title": "Blue Train",
+                    "artist": "John Coltrane",
+                    "price": 56.99
+                },
+                {
+                    "id": "2",
+                    "title": "Jeru",
+                    "artist": "Gerry Mulligan",
+                    "price": 17.99
+                },
+                {
+                    "id": "3",
+                    "title": "Sarah Vaughan and Clifford Brown",
+                    "artist": "Sarah Vaughan",
+                    "price": 39.99
+                }
+            ]
+
+    9) Implement HTTP POST method for end-point.
+       Example [3]:
+
+        /* postAlbums adds an album from JSON received in the request body.
+        * Context.BindJSON: to bind the request body to newAlbum.
+        * Append the album struct initialized from the JSON to the albums slice.
+        */
+        func postAlbums(c *gin.Context) {
+            var newAlbum album
+
+            /* Call BindJSON to bind the received JSON to
+            * newAlbum.
+            */
+            if err := c.BindJSON(&newAlbum); err != nil {
+                return
+            }
+
+            /* Add the new album to the slice. */
+            albums = append(albums, newAlbum)
+            c.IndentedJSON(http.StatusCreated, newAlbum)
+        }
+
+    10) Bind POST HTTP method.
+        Example [3]:
+
+        func main() {
+            router := gin.Default()
+
+            /* Note that you’re passing the name of the
+             * getAlbums function.
+             */
+
+            /* Bind GET HTTP method for /albums endpoint */
+            router.GET("/albums", getAlbums)
+
+            /* Bind POST HTTP method for /albums endpoint */
+            router.POST("/albums", postAlbums)
+
+            router.Run("localhost:8080")
+        }
+
+    11) Update go dependency and run
+       $ go mod tidy
+       $ go run .
+
+    12) Use curl to send POST request to web-server
+        $ curl http://localhost:8080/albums \\
+            --include \\
+            --header "Content-Type: application/json" \\
+            --request "POST" \\
+            --data '{"id": "4", "title": "The Modern Sound of Betty Carter", "artist": "Betty Carter", "price": 49.99}'
+
+        Output from curl:
+
+            HTTP/1.1 201 Created
+            Content-Type: application/json; charset=utf-8
+            Date: Wed, 02 Jun 2021 00:34:12 GMT
+            Content-Length: 116
+
+            {
+                "id": "4",
+                "title": "The Modern Sound of Betty Carter",
+                "artist": "Betty Carter",
+                "price": 49.99
+            }
+
+    13) Confirm that the data has been stored:
+        $ curl http://localhost:8080/albums
+
+    14) Implement GET method for specific record ID.
+        Example [3]:
+
+        /* getAlbumByID locates the album whose ID value matches the id
+        * parameter sent by the client, then returns that album as a response.
+        */
+        func getAlbumByID(c *gin.Context) {
+            id := c.Param("id")
+
+            // Loop over the list of albums, looking for
+            // an album whose ID value matches the parameter.
+            for _, a := range albums {
+                if a.ID == id {
+                    c.IndentedJSON(http.StatusOK, a)
+                    return
+                }
+            }
+            c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found"})
+        }
+
+    15) Add record ID GET method handler.
+        Example [3]:
+
+        func main() {
+            router := gin.Default()
+
+            /* Note that you’re passing the name of the
+            * getAlbums function.
+            */
+
+            /* Bind GET HTTP method for /albums endpoint */
+            router.GET("/albums", getAlbums)
+
+            /* Bind GET HTTP method for /albums/:id endpoint */
+            router.GET("/albums/:id", getAlbumByID)
+
+            /* Bind POST HTTP method for /albums endpoint */
+            router.POST("/albums", postAlbums)
+
+            router.Run("localhost:8080")
+        }
+
+    16) Update go dependency and run
+       $ go mod tidy
+       $ go run .
+
+    17) Test with a specific Gin record ID.
+        Example [3]:
+        $ curl http://localhost:8080/albums/2
+
+        Output:
+        {
+            "id": "2",
+            "title": "Jeru",
+            "artist": "Gerry Mulligan",
+            "price": 17.99
+        }
+
+    Reference
+    =========
+    [1]     https://gin-gonic.com/docs/
+    [2]     https://github.com/julienschmidt/httprouter
+    [3]     https://go.dev/doc/tutorial/web-service-gin
+EOF
+}

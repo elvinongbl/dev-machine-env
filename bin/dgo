@@ -1,0 +1,164 @@
+#!/bin/bash
+#
+# Development language for Go
+COMMAND=$1
+
+# include summary section under $MYBINTOP/include
+MYBINTOP=$HOME/common/bin
+SUMMARYLIST=("go" "gin")
+
+function usage() {
+cat << EOF
+    For development:
+    dgo COMMAND
+    COMMAND:
+        init <modname>      Init go module dependency
+        update              Update go module dependency
+        run [PATH]          Compile and Run a Go program
+        test                Test go package (xxx_test.go)
+
+        localize <modname> <path>       Make external Go package to point
+                                        to local path and Update dependency
+
+    For deployment:
+        build               Compiles the packages, along with their dependencies
+        install             Compiles the packages, along with their dependencies and
+                            Install the binary
+        inst-path           Show installed path
+
+    For information:
+    dgo help                Show help message
+    dgo summary <topic>     Show summary of Golang development.
+                            topic=[${SUMMARYLIST[@]}]
+EOF
+}
+
+function print_topic() {
+    echo -e "\n# $@"
+}
+
+function run_cmd() {
+    COLOR='\033[0;36m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR\$ $@ $NCOLOR"
+    eval $@
+}
+
+function print_cmd() {
+    COLOR='\033[0;36m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR\$ $@ $NCOLOR"
+}
+
+function print_warn() {
+    COLOR='\033[0;31m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR $@ $NCOLOR"
+}
+
+function show_summary() {
+    local SUBTOPIC=$1
+
+    for i in ${!SUMMARYLIST[@]}; do
+        if [ x"$SUBTOPIC" == x"${SUMMARYLIST[$i]}" ]; then
+            local SUMMARY="summary_${SUBTOPIC}"
+            source $MYBINTOP/include/$SUBTOPIC-summary
+            $SUMMARY
+            exit 0
+        fi
+    done
+    usage
+}
+
+function dgo_init() {
+    # module name., e.g. mylib/http, github.com/<project-name>/<mod-name>
+    local MODNAME=$1
+    run_cmd go mod init $MODNAME
+}
+
+function dgo_update() {
+    run_cmd go mod tidy
+}
+
+# Set the go module URL to local path
+function dgo_localize() {
+    local MODNAME=$1
+    local LOCALPATH=$2
+    run_cmd go mod edit -replace $MODNAME=$LOCALPATH
+}
+
+function dgo_test() {
+    run_cmd go test -v
+}
+
+function dgo_build() {
+    run_cmd go build
+}
+
+function dgo_install() {
+    run_cmd go install
+}
+
+function dgo_instpath() {
+    run_cmd go list -f '{{.Target}}'
+}
+
+function dgo_run() {
+    local FILEPATH=$1
+    if [ x"$FILEPATH" == x"" ]; then
+        FILEPATH="."
+    fi
+    run_cmd go run $FILEPATH
+}
+
+if [ x"$COMMAND" == x"help" ] || [ x"$COMMAND" == x"" ]; then
+    usage
+    exit 0
+fi
+if [ x"$COMMAND" == x"summary" ]; then
+    shift
+    SUBTOPIC=$1
+    show_summary $SUBTOPIC
+    exit 0
+fi
+if [ x"$COMMAND" == x"init" ]; then
+    shift
+    MODNAME=$1
+    dgo_init $MODNAME
+    exit 0
+fi
+if [ x"$COMMAND" == x"update" ]; then
+    dgo_update
+    exit 0
+fi
+if [ x"$COMMAND" == x"localize" ]; then
+    shift
+    MODNAME=$1
+    LOCALPATH=$2
+    dgo_localize $MODNAME $LOCALPATH
+    dgo_update
+    exit 0
+fi
+if [ x"$COMMAND" == x"test" ]; then
+    dgo_test
+    exit 0
+fi
+if [ x"$COMMAND" == x"run" ]; then
+    shift
+    FILEPATH=$1
+    dgo_run $FILEPATH
+    exit 0
+fi
+if [ x"$COMMAND" == x"build" ]; then
+    dgo_build
+    exit 0
+fi
+if [ x"$COMMAND" == x"install" ]; then
+    dgo_install
+    exit 0
+fi
+if [ x"$COMMAND" == x"inst-path" ]; then
+    dgo_instpath
+    exit 0
+fi
+usage

@@ -1,0 +1,80 @@
+#!/bin/bash
+
+function summary_go() {
+cat << EOF
+
+    Summary of Golang
+    ==================
+
+    1) To set user Go install path
+       $ go env -w GOBIN=$HOME/common/go/bin
+       $ go env -w GOPATH=$HOME/common/go/
+       $ go env -w GOMODCACHE=$HOME/common/go/pkg/mod
+
+    2) Go lang application is statically linked and uses go module to maintain
+       application dependency by
+       $ go mod init <module-name>'
+
+    3) Go app (filename.go) can be built and executed by
+       $ go run .
+
+    4) Search Go package at https://pkg.go.dev
+
+    5) Tidy up Go module dependency when new module is added
+       $ go mod tidy
+
+    6) Before Go package is published to Internet, you can temporarily replace
+       the module external path to local path
+       $ go mod edit -replace example.com/greeting=../greeting
+
+       After the module path is updated, tidy the go module dependency
+       $ go mod tidy
+
+    7) Go execute init() function automatically after global variables
+       have been initialized
+
+    8) Compile and Install the go program under:
+       $ go build
+       $ go install
+
+    9) To show Go installed path of a program
+       $ go list -f '{{.Target}}'
+
+    Misc Information
+    ================
+    *  Go package documentation
+       https://pkg.go.dev/std
+
+    *  Effective Go
+       https://go.dev/doc/effective_go
+
+    *  Generics in Go
+       https://go.dev/doc/tutorial/generics
+
+    *  Fuzzing (SQL injection, buffer overflow, denial of service and
+       cross-site scripting attacks.)
+       https://go.dev/doc/tutorial/fuzz
+
+    *  Go command and tool
+       https://go.dev/doc/cmd
+
+    *  Go module reference
+       https://go.dev/ref/mod
+
+    *  The go.mod reference
+       https://go.dev/doc/modules/gomod-ref
+
+    *  Go language specification
+       https://go.dev/ref/spec
+
+    *  The Go Blog
+       https://go.dev/blog/
+
+    Reference
+    =========
+    [1]     https://go.dev/doc/tutorial/getting-started
+    [2]     https://go.dev/doc/tutorial/create-module
+    [3]     https://go.dev/doc/modules/managing-dependencies#naming_module
+
+EOF
+}
