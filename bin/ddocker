@@ -1,0 +1,87 @@
+#!/bin/bash
+
+COMMAND=$1
+
+# include summary section under $MYBINTOP/include
+MYBINTOP=$HOME/common/bin
+source $MYBINTOP/include/docker-summary
+TOPICLIST=("overview" "run" "build" "demoapache")
+DOCKERFILES=("apache")
+
+function usage() {
+cat << EOF
+    For information:
+    ddocker help                Show help message
+    ddocker summary <topic>     Show summary of Docker development.
+                                topic=[${TOPICLIST[@]}]
+    ddocker file <topic>        Show Dockerfile example.
+                                topic=[${DOCKERFILES[@]}]
+
+EOF
+}
+
+function print_topic() {
+    echo -e "\n# $@"
+}
+
+function run_cmd() {
+    COLOR='\033[0;36m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR\$ $@ $NCOLOR"
+    eval $@
+}
+
+function print_cmd() {
+    COLOR='\033[0;36m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR\$ $@ $NCOLOR"
+}
+
+function print_warn() {
+    COLOR='\033[0;31m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR $@ $NCOLOR"
+}
+
+function show_summary() {
+    local SUBTOPIC=$1
+    for i in ${!TOPICLIST[@]}; do
+        if [ x"$SUBTOPIC" == x"${TOPICLIST[$i]}" ]; then
+            local SUMMARY="summary_docker_${SUBTOPIC}"
+            $SUMMARY
+            exit 0
+        fi
+    done
+    usage
+}
+
+function show_dockerfile() {
+    local SUBTOPIC=$1
+    for i in ${!DOCKERFILES[@]}; do
+        if [ x"$SUBTOPIC" == x"${DOCKERFILES[$i]}" ]; then
+            local SUMMARY="show_dockerfile_${SUBTOPIC}"
+            $SUMMARY
+            exit 0
+        fi
+    done
+    usage
+}
+
+if [ x"$COMMAND" == x"help" ] || [ x"$COMMAND" == x"" ]; then
+    usage
+    exit 0
+fi
+if [ x"$COMMAND" == x"summary" ]; then
+    shift
+    SUBTOPIC=$1
+    show_summary $SUBTOPIC
+    exit 0
+fi
+if [ x"$COMMAND" == x"file" ]; then
+    shift
+    SUBTOPIC=$1
+    show_dockerfile $SUBTOPIC
+    exit 0
+fi
+
+usage

@@ -1,0 +1,376 @@
+#!/bin/bash
+function summary_docker_overview() {
+cat << EOF
+
+    ###########################################################
+    docker overview
+    ###########################################################
+
+    *   Container has isolated process, name space, networking whereby an
+        application will run on it.
+
+    *   Show system-wide information of host machine where docker runs on
+        $ docker info
+
+    *   Search Docker Hub for image
+        Ref: https://docs.docker.com/engine/reference/commandline/search/
+        $ docker search <IMAGE>
+        $ docker search --filter is-official=true --filter is-automated=true <IMAGE>
+        $ docker search --filter is-official=true ubuntu
+        $ docker search ubuntu
+
+    *   List local (downloaded or built) docker image
+        $ docker image ls    OR,
+        $ docker images
+
+    *   Delete a docker image
+        $ docker image rm <IMAGE>    OR,
+        $ docker rmi <IMAGE ID>
+
+    *   Download a docker image from Docker Hub
+        $ docker pull <IMAGE>
+
+    *   Run a command on container based on <IMAGE>
+        $ docker run -it <IMAGE> <COMMAND>
+        $ docker run -it --rm <IMAGE> <COMMAND>
+        $ docker run -dit --rm -p <HOST-PORT>:<CONTAINER-PORT> <IMAGE> <COMMAND>
+        $ docker run -it --rm ubuntu /bin/bash
+        $ docker run -dit --rm ubuntu /bin/bash
+        $ docker run -it --rm ubuntu:latest /bin/bash
+
+        Note:
+            * --rm  : container is automatically removed upon exit
+            * -it   : Allocate a pseudo-tty and Keep STDIN open even
+                      if not attached
+            * -d    : Run container in detached mode
+            * -p port1:port2    : port redirect port2 to port1
+            * Inside a container, use 'hostname' to check
+              the sand-box process that the command is running
+              on.
+            * If you installed a bunch of packages, those packages
+              would be removed when you exit the container.
+            * To exit from container, type 'exit'
+            * To exit but keep container running, Ctrl+P and Ctrl+Q
+
+    *   List container process
+        $ docker ps --all
+
+    *   Delete a container (not the container image that uses 'docker rmi'):
+        $ docker rm <CONTAINER ID>
+        $ docker rm <CONTAINER ID> <CONTAINER ID>
+
+    *   Start|stop a docker process (previous stopped or exit but not removed)
+        $ docker start|stop <CONTAINER ID>
+
+    *   Attach to a docker container pseudo-tty and
+        $ docker attach <CONTAINER ID>
+
+    *   Show the statistics (CPU/MEM/Net IO/Block IO) of a container
+        $ docker stats <CONTAINER ID>
+
+    *   When you are satisfy with the container and image, you can commit it
+        $ docker ps -a    # to get the container ID
+        $ docker commit <CONTAINER ID> <CONTAINER IMAGE>
+
+    *   To build Container image from Dockerfile located at current
+        $ docker build -t <IMAGE NAME>:<VERSION> .
+        $ docker build -t ubuntu/apache-server:1.0 .
+
+    Reference
+    =========
+    [1] Docker Reference        https://docs.docker.com/reference/
+
+EOF
+}
+
+function summary_docker_run() {
+cat << EOF
+
+    ###########################################################
+    docker run [OPTIONS] IMAGE[:TAG|@DIGEST] [COMMAND] [ARG...]
+    ###########################################################
+
+    *   A container is derived based on specific IMAGE which defines the
+        filesystem and CPU resource that is has.
+
+        To start a container, we use:
+        $ docker run [OPTIONS] IMAGE[:TAG|@DIGEST] [COMMAND] [ARG...]
+        URL: https://docs.docker.com/engine/reference/run/
+
+    *   As container IMAGE has default settings (by developer), the operator
+        can override the setting or Docker default run-time by specifying
+        [OPTIONS] in the 'docker run' command.
+
+        For example:-
+            -d                  run container as background
+            --name              container name
+            --ipc               IPC setting
+            --restart           restart policy
+            --rm                clean-up after docker container exits.
+                                By default, filesystem persists even after container
+                                exits.
+            --cidfile="file"    write the container ID to a file for
+                                automation usage
+            --uts=host          Set the container namespace (default seperate)
+                                to the host namespace
+            --init              Override the default docker-init (backed by tini)
+                                executable. https://github.com/krallin/tini
+                                Note: unless you want to change the way container
+                                init itself (zombie process killing, we rarely need
+                                to change it)
+
+    *   A container run as:
+        a) Background/Detached mode ('-d'): E.g. running webserver
+            $ docker run -d -p 80:80 my_image nginx -g 'daemon off;'
+
+        b) Foreground: E.g., running a Ubuntu OS command
+            $ docker run -a stdin -a stdout -i -t ubuntu /bin/bash
+            Note:
+                -a=[]       : Attach to `STDIN`, `STDOUT` and/or `STDERR`
+                -t          : Allocate a pseudo-tty
+                -i          : Keep STDIN open even if not attached
+
+    *   The IMAGE that container will run with can be further tuned
+        according to version or tag. For example:
+            $ docker run ubuntu:14.04
+            $ ocker run alpine@sha256:9cacb71397b640eca97488cf08582ae4e4068513101088e9f96c9814bfda95e0 date
+
+    *   By default, every container has its own process IDs for isolation
+        purpose. However, container can be run to have visibility of other
+        container or even the host system process ID view using '--pid':
+        a) Host view
+            $ docker run -it --rm --pid=host IMAGE [COMMAND]
+
+        b) Other container view: Exposing OTHERCONTAINER PIDs for MYCONTAINER derived from
+           container IMAGE:-
+            $ docker run -it --rm --name MYCONTAINER --pid=container:OTHERCONTAINER IMAGE [COMMAND]
+
+        Note:
+        The usage of the above technique is useful for building a debugging tool
+        docker image that can be use to inspect either host system process or
+        processes on other container.
+
+    *   IPC (POSIX/SysV IPC) namespace provides separation of named shared memory segments,
+        semaphores and message queues. Shared memory segments are usually use for high
+        performance custom-built scientic computing (OpenMPI, C++/Booast) or database.
+        In complex applications that are containerized, it is important to make sure
+        applications have access to shared IPC mechanism:
+
+        To define IPC settings:-
+            --ipc=none                  None. /dev/shm is not mounted
+            --ipc=private               Container own IPC namespace
+            --ipc=shareable             Own private IPC namespace but can be share it
+                                        with other container.
+            --ipc=host                  Use the host IPC namespace
+            --ipc=container:CONTAINER   Join another shared container IPC namespace
+
+    *   By default container has access to networking and the MAC address is generated
+        using the IP address allocated to the container. Docker does not check for
+        unique MAC address.
+
+        To further customize the network settings:-
+        a) --network=none               No network access enabled
+
+        b) --network=bridge             (Default) Container connects to bridge via
+                                        veth interface. Container is allocated IP
+                                        address.
+                                        Note:
+                                        To change MAC address of veth, uses --mac-address=MAC.
+
+        c) --network=host               Use the network stack inside Host. All interfaces
+                                        of the Host available to container.
+                                        Note:
+                                        i)   Better networking performance compared to bridge mode.
+                                        ii)  Container has its own UTS namespace and it can be change
+                                             --hostname and --domainname.
+                                        iii) --hostname, --add-host, --dns, --dns-search &
+                                             --dns-option will modify the container /etc/hosts or
+                                             /etc/resolv.conf and not on the host.
+
+        d) --network=container:name|id  Use network stack of another container
+                                        Example: connect redis-cli to redis container
+                                        # redis container biind to localhost
+                                          $ docker run -d --name redis example/redis --bind 127.0.0.1
+                                        # redis-cli uses the redis container's network stack
+                                          $ docker run --rm -it --network container:redis \
+                                              example/redis-cli -h 127.0.0.1
+
+
+        e) --network=NETWORK            Connect to user-created network (docker network create)
+                                        Note:
+                                        i)  To create a named network and specify the networking
+                                            settings:-
+                                            $ docker network create -d bridge mynet
+                                        ii) To run container that attaches to created network:
+                                            $ docker run --network=mynet -itd --name=MyContainer busybox
+
+        Container has its own /etc/hosts and use --add-host to add new hosts:
+        $ docker run -it --add-host db-static:86.75.30.9 ubuntu cat /etc/hosts
+
+        As container UTS namespace is unique, if a container is connected to a default bridge network
+        and linked with other container, the container's /etc/hosts is updated with the linked
+        container's name.
+
+    *   The exit code of 'docker run' can be shown by 'echo $?' (same as bash command)
+         125     Error in Docker daemon
+         126     Contained command cannot be invoked
+         127     Contained command cannot be found
+
+    *   When container exits, default is not to restart. To change the restart policies:
+        a) --restart=no                 Default. No restart upon container exit
+        b) --restart=on-failure[:N]     Restart on failure. Retries N times
+        c) --restart=always             Restart container indefinitely.
+        d) --restart=unless-stopped     Restart container always including Docker daemon
+                                        start-up, except container is put into stopped
+                                        before Docker daemon was stopped
+
+        Note:
+        The status of restarts can be inspect:
+        # To inspect container restart counter:
+        $ docker inspect -f "{{ .RestartCount }}" CONTAINERNAME
+
+        # To inspect container last restart time/date:
+        $ docker inspect -f "{{ .State.StartedAt }}" CONTAINERNAME
+
+        Note: Do not use '--rm' with '--restart' options
+
+    *   The performance parameters of the container can be changed:-
+        a) Memory
+            --memory="10b"          Memory limit. Minimum 4MByte.
+                                    Size unit = b|k|m|g.
+            --memory-swap="10b"     Total memory + swap size.
+                                    Size unit = b|k|m|g.
+            --memory-reservation N  Reserve memory for container.
+                                    Limit should be lower than hard-limit
+                                    set in '--memory'
+            --kernel-memory="1g"    Kernel memory limit.
+                                    b|k|m|g
+            --oom-kill-disable=false    Disable OOM Killer for container
+            --oom-score-adj=0           OOM perference (-1000 to 1000)
+            --memory-swappiness=""      Container's memory swappiness (0 to 100)
+            --shm-size=""           Size of /dev/shm. Format 10b|k|m|g
+        b) CPU
+            --cpu-shares=N          CPU shares (relative weight)
+            --cpus=0.000            Number of CPUs. 0.000 means no limit
+            --cpu-period=0          CPU Completely Fair Scheduler period
+            --cpuset-cpus=""        CPU affinity (0-3, 0,1)
+            --cpuset-mems=""        Memory nodes in which allow execution.
+                                    NUMA system.
+            --cpu-quota=0           CPU CFS quota
+            --cpu-rt-period=0       Limit CPU real-time period in micro-sec.
+                                    Cannot be higher than host (rtprio ulimit)
+        c) Block I/O
+            --blkio-weight=0            Block IO weight (10-1000)
+            --blkio-weight-device=""    Block IO device weight format: DEVICENAME:WEIGHT
+            --device-read-bps=""        Limit read rate from a device format:
+                                        <device-path>:10kb|mb|gb
+            --device-write-bps=""       Limit write rate to a device format:
+                                        <device-path>:10kb|mb|gb
+             --device-read-iops=""      Limit read rate (IO per sec) from a device format:
+                                        <device-path>:<number>
+            --device-write-iops""       Limit write rate (IO per sec) to a device format:
+                                        <device-path>:<number>
+
+EOF
+}
+
+function summary_docker_build() {
+cat << EOF
+
+    #######################################
+    $ docker build [OPTIONS] PATH | URL | -
+    #######################################
+
+    *   Docker image is built from Dockerfile and a "context" before a
+        container can be run based on the Docker image.
+
+    *   The build context is located in either PATH or URL.
+        URL can refer to Git repo, pre-packaged tarball and plain text
+        a) Git repo
+           $ docker build https://github.com/docker/rootfs.git#branchname:directorypath
+
+        b) Tarball
+           $ docker build http://server/context.tar.gz
+
+        c) Plain text
+           $ docker build -f ~/workspace/docker1/Dockerfile.debug
+           OR
+           $ docker build -f ~/workspace/docker1/Dockerfile.production
+
+    *   A developer may defines the docker build settings through [OPTIONS]:
+        --iidfile            Write the image ID to a file
+        --memory             Memory limit
+        --memory-swap        Memory+swap limit
+        --output             Output destination
+        --rm                 Remove intermediate containers after successful build
+        --shm-size           Size of /dev/shm
+        --tag                Docker image tag format: name:tag
+        --ulimit             Ulimit options
+
+    *   If you have git clone earlier and you are build Docker image from
+        a git, you may ignore the ".git" to reduce the Image size by using
+        .dockerignore file
+        $ echo ".git" > .dockerignore
+        $ docker build .
+
+EOF
+}
+
+function summary_docker_demoapache() {
+cat << EOF
+
+    ############################################
+    Container demo : Apache 2
+    ############################################
+
+    $ docker pull ubuntu
+    $ docker run -it -p 8080:80 ubuntu:latest /bin/bash
+
+        Container:
+            % apt update
+            % apt install apache2
+            % echo -e "\n/etc/init.d/apache2 start" >> /etc/bash.bashrc
+            % Ctrl+P and Ctrl+Q
+
+    $ docker ps -a
+    $ docker start <CONTAINER ID>
+
+    # Use browser to open URL localhost:8080
+
+    # Now, that it is working fine, commit the docker ID
+    $ docker commit <CONTAINER ID> ubuntu/apache-server:1.0
+
+    # After you can just spin-up additional apache server
+    $ docker run -dit -p 9090:80 ubuntu/apache-server:1.0 /bin/bash
+
+    # Use browser to open URL localhost:9090
+
+EOF
+}
+
+function show_dockerfile_apache () {
+cat << EOF > Dockerfile
+##############################
+# Dockerfile for Apache server
+##############################
+
+FROM ubuntu
+MAINTAINER Elvin Ong <elvinongbl@gmail.com>
+
+# Update the container packages
+RUN apt update; apt dist-upgrade -y
+
+# Install apache2 and vim
+RUN apt install -y apache2 vim
+
+# Make Apache automatically start-up
+RUN echo "/etc/init.d/apache2 start" >> /etc/bash.bashrc
+
+##############################################
+# $ docker build -t ubuntu/apache-server:1.5 .
+##############################################
+
+EOF
+
+run_cmd cat Dockerfile
+}
