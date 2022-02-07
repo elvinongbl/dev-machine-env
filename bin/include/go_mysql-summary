@@ -1,0 +1,239 @@
+function summary_go_mysql() {
+cat << EOF
+
+    mysql database access [1]
+    ========================
+
+    1)  Install mysql community server on dev machine
+        https://dev.mysql.com/downloads/mysql/
+        https://dev.mysql.com/downloads/shell/
+
+    2)  Make sure the mysql/bin path is added to PATH
+        E.g on MAC (~/.profile):
+        export PATH=/usr/local/mysql/bin:\$PATH
+
+    3)  Connect to mysql server using mysql client
+        $ mysql -u root -p
+        Enter password
+
+        mysql>
+
+    4)  Create a "recordings" database and use it
+        mysql> create database recordings;
+        mysql> use recordings
+        Database changed
+
+    5)  Create a create-tables.sql script as follow:
+            DROP TABLE IF EXISTS album;
+            CREATE TABLE album (
+            id         INT AUTO_INCREMENT NOT NULL,
+            title      VARCHAR(128) NOT NULL,
+            artist     VARCHAR(255) NOT NULL,
+            price      DECIMAL(5,2) NOT NULL,
+            PRIMARY KEY (\`id\`)
+            );
+
+            INSERT INTO album
+            (title, artist, price)
+            VALUES
+            ('Blue Train', 'John Coltrane', 56.99),
+            ('Giant Steps', 'John Coltrane', 63.99),
+            ('Jeru', 'Gerry Mulligan', 17.99),
+            ('Sarah Vaughan', 'Sarah Vaughan', 34.98);
+
+    6)  Setup 'recordings' database:
+        mysql> source /path/to/create-tables.sql
+
+    7)  Verify the data is added to 'recordings' database:
+        mysql> select * from album;
+            +----+---------------+----------------+-------+
+            | id | title         | artist         | price |
+            +----+---------------+----------------+-------+
+            |  1 | Blue Train    | John Coltrane  | 56.99 |
+            |  2 | Giant Steps   | John Coltrane  | 63.99 |
+            |  3 | Jeru          | Gerry Mulligan | 17.99 |
+            |  4 | Sarah Vaughan | Sarah Vaughan  | 34.98 |
+            +----+---------------+----------------+-------+
+            4 rows in set (0.00 sec)
+
+        mysql> \quit
+
+    8)  To interact with database in Go, we need Go driver that
+        translates requests through Go database/sql package to database.
+        https://github.com/go-sql-driver/mysql/
+
+    9)  Create main.go under data-access/ directory
+        $ mkdir data-access
+        $ cd data-access
+        $ go mod init example/data-access
+        $ vi main.go
+
+        ################################################################
+            package main
+
+            import (
+                "database/sql"
+                "fmt"
+                "log"
+                "os"
+
+                "github.com/go-sql-driver/mysql"
+            )
+
+            var db *sql.DB
+
+            type Album struct {
+                ID     int64
+                Title  string
+                Artist string
+                Price  float32
+            }
+
+            /* INSERT INTO album
+            *   (title, artist, price)
+            * VALUES
+            * ('Blue Train', 'John Coltrane', 56.99),
+            * ('Giant Steps', 'John Coltrane', 63.99),
+            * ('Jeru', 'Gerry Mulligan', 17.99),
+            * ('Sarah Vaughan', 'Sarah Vaughan', 34.98);
+            */
+
+            /* albumsByArtist queries for albums that have the specified artist name.
+            */
+            func albumsByArtist(name string) ([]Album, error) {
+                // An albums slice to hold data from returned rows.
+                var albums []Album
+
+                rows, err := db.Query("SELECT * FROM album WHERE artist = ?", name)
+                if err != nil {
+                    return nil, fmt.Errorf("albumsByArtist %q: %v", name, err)
+                }
+
+                // Ensure rows is closed after function exits.
+                defer rows.Close()
+
+                // Loop through rows, using Scan to assign column data to struct fields.
+                for rows.Next() {
+                    var alb Album
+                    if err := rows.Scan(&alb.ID, &alb.Title, &alb.Artist, &alb.Price); err != nil {
+                        return nil, fmt.Errorf("albumsByArtist %q: %v", name, err)
+                    }
+                    albums = append(albums, alb)
+                }
+                if err := rows.Err(); err != nil {
+                    return nil, fmt.Errorf("albumsByArtist %q: %v", name, err)
+                }
+                return albums, nil
+            }
+
+            // albumByID queries for the album with the specified ID.
+            func albumByID(id int64) (Album, error) {
+                // An album to hold data from the returned row.
+                var alb Album
+
+                row := db.QueryRow("SELECT * FROM album WHERE id = ?", id)
+                if err := row.Scan(&alb.ID, &alb.Title, &alb.Artist, &alb.Price); err != nil {
+                    if err == sql.ErrNoRows {
+                        return alb, fmt.Errorf("albumsById %d: no such album", id)
+                    }
+                    return alb, fmt.Errorf("albumsById %d: %v", id, err)
+                }
+                return alb, nil
+            }
+
+            /* addAlbum adds the specified album to the database,
+            * returning the album ID of the new entry
+            */
+            func addAlbum(alb Album) (int64, error) {
+                /* Insert new album */
+                result, err := db.Exec("INSERT INTO album (title, artist, price) VALUES (?, ?, ?)",
+                                       alb.Title, alb.Artist, alb.Price)
+                if err != nil {
+                    return 0, fmt.Errorf("addAlbum: %v", err)
+                }
+                /* Get ID */
+                id, err := result.LastInsertId()
+                if err != nil {
+                    return 0, fmt.Errorf("addAlbum: %v", err)
+                }
+                return id, nil
+            }
+
+            func main() {
+                // Capture connection properties.
+                cfg := mysql.Config{
+                    User:   os.Getenv("DBUSER"),
+                    Passwd: os.Getenv("DBPASS"),
+                    Net:    "tcp",
+                    Addr:   "127.0.0.1:3306",
+                    DBName: "recordings",
+                }
+                // Get a database handle.
+                var err error
+                db, err = sql.Open("mysql", cfg.FormatDSN())
+                if err != nil {
+                    log.Fatal(err)
+                }
+
+                // Check connection to database works
+                pingErr := db.Ping()
+                if pingErr != nil {
+                    log.Fatal(pingErr)
+                }
+                fmt.Println("Connected!")
+
+                albums, err := albumsByArtist("John Coltrane")
+                if err != nil {
+                    log.Fatal(err)
+                }
+                fmt.Printf("Albums found: %v\n", albums)
+
+                // Hard-code ID 2 here to test the query.
+                alb, err := albumByID(2)
+                if err != nil {
+                    log.Fatal(err)
+                }
+                fmt.Printf("Album found: %v\n", alb)
+
+                albID, err := addAlbum(Album{
+                    Title:  "The Modern Sound of Betty Carter",
+                    Artist: "Betty Carter",
+                    Price:  49.99,
+                })
+                if err != nil {
+                    log.Fatal(err)
+                }
+                fmt.Printf("ID of added album: %v\n", albID)
+            }
+
+        ################################################################
+
+        10) Update go mod and run it
+            $ go mod tidy
+            $ go run .
+
+            Connected!
+            Albums found: [{1 Blue Train John Coltrane 56.99} {2 Giant Steps John Coltrane 63.99}]
+            Album found: {2 Giant Steps John Coltrane 63.99}
+            ID of added album: 5
+
+        11) Check recording mysql database
+            $ mysql -u root -p
+            mysql> use recordings
+            mysql> select * from album;
+                +----+----------------------------------+----------------+-------+
+                | id | title                            | artist         | price |
+                +----+----------------------------------+----------------+-------+
+                |  1 | Blue Train                       | John Coltrane  | 56.99 |
+                |  2 | Giant Steps                      | John Coltrane  | 63.99 |
+                |  3 | Jeru                             | Gerry Mulligan | 17.99 |
+                |  4 | Sarah Vaughan                    | Sarah Vaughan  | 34.98 |
+                |  5 | The Modern Sound of Betty Carter | Betty Carter   | 49.99 |
+                +----+----------------------------------+----------------+-------+
+                5 rows in set (0.00 sec)
+
+    Reference
+    [1]     https://go.dev/doc/tutorial/database-access
+
+EOF
+}

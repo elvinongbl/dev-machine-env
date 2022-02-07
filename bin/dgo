@@ -5,7 +5,7 @@ COMMAND=$1
 
 # include summary section under $MYBINTOP/include
 MYBINTOP=$HOME/common/bin
-SUMMARYLIST=("go" "gin")
+SUMMARYLIST=("go" "go_mysql" "gin")
 
 function usage() {
 cat << EOF
