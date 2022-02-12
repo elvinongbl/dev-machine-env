@@ -40,6 +40,14 @@ cat << EOF
     9) To show Go installed path of a program
        $ go list -f '{{.Target}}'
 
+   VSCode Information
+   ==================
+    *  Install "Go" extension that includes following tools:
+        * gocode - generate HTML pages of API docs
+        * gopkgs - autocomplete unimported packages at File/save
+        * golint - detect errors
+        * godef  - print Symbols in Go source code
+
     Misc Information
     ================
     *  Go package documentation
