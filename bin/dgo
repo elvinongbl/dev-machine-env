@@ -9,18 +9,24 @@ SUMMARYLIST=("go" "go_mysql" "gin")
 
 function usage() {
 cat << EOF
-    For development:
+    For module management:
+    dgo module COMMAND
+        COMMAND:
+        init <modname>      Init Go project module dependency
+        update              Update go module dependency
+        list                List module dependency
+        graph <filename>    Generate dependency graph
+        redir <modname> <path>  Redirect external Go package to point
+                                to local path and Update dependency
+
+    For program compilation and test:
     dgo COMMAND
     COMMAND:
-        init <modname>      Init go module dependency
-        update              Update go module dependency
         run [PATH]          Compile and Run a Go program
         test                Test go package (xxx_test.go)
 
-        localize <modname> <path>       Make external Go package to point
-                                        to local path and Update dependency
-
     For deployment:
+        vendor              Vendoring by downloading 3rd party Go modules locally
         build               Compiles the packages, along with their dependencies
         install             Compiles the packages, along with their dependencies and
                             Install the binary
@@ -70,45 +76,31 @@ function show_summary() {
     usage
 }
 
-function dgo_init() {
-    # module name., e.g. mylib/http, github.com/<project-name>/<mod-name>
-    local MODNAME=$1
-    run_cmd go mod init $MODNAME
+function dgo_diag_header() {
+    local DOTFILE=$1
+cat << EOF > $DOTFILE
+digraph {
+    graph [overlap=false, size=14];
+    root="$(go list -m)";
+    node [ shape = plaintext, fontname = "Helvetica", fontsize=24];
+    "$(go list -m)" [style = filled, fillcolor = "#E94762"];
+EOF
 }
 
-function dgo_update() {
-    run_cmd go mod tidy
-}
+function dgo_dependency_graph() {
+    local DOTFILE=$1
 
-# Set the go module URL to local path
-function dgo_localize() {
-    local MODNAME=$1
-    local LOCALPATH=$2
-    run_cmd go mod edit -replace $MODNAME=$LOCALPATH
-}
-
-function dgo_test() {
-    run_cmd go test -v
-}
-
-function dgo_build() {
-    run_cmd go build
-}
-
-function dgo_install() {
-    run_cmd go install
-}
-
-function dgo_instpath() {
-    run_cmd go list -f '{{.Target}}'
-}
-
-function dgo_run() {
-    local FILEPATH=$1
-    if [ x"$FILEPATH" == x"" ]; then
-        FILEPATH="."
+    go mod graph | sed -Ee 's/@[^[:blank:]]+//g' | sort | uniq > unver.txt
+    dgo_diag_header $DOTFILE.dot
+    cat unver.txt | awk '{print "\""$1"\" -> \""$2"\""};' >> $DOTFILE.dot
+    echo "}" >> $DOTFILE.dot
+    sed -i '' 's+\("github.com/[^/]*/\)\([^"]*"\)+\1\\n\2+g' $DOTFILE.dot
+    sfdp -Tsvg -o $DOTFILE.svg $DOTFILE.dot
+    rm unver.txt
+    rm $DOTFILE.dot
+    if [ -f "$DOTFILE.svg" ]; then
+        run_cmd open $DOTFILE.svg
     fi
-    run_cmd go run $FILEPATH
 }
 
 if [ x"$COMMAND" == x"help" ] || [ x"$COMMAND" == x"" ]; then
@@ -121,44 +113,77 @@ if [ x"$COMMAND" == x"summary" ]; then
     show_summary $SUBTOPIC
     exit 0
 fi
-if [ x"$COMMAND" == x"init" ]; then
+if [ x"$COMMAND" == x"module" ]; then
     shift
-    MODNAME=$1
-    dgo_init $MODNAME
-    exit 0
-fi
-if [ x"$COMMAND" == x"update" ]; then
-    dgo_update
-    exit 0
-fi
-if [ x"$COMMAND" == x"localize" ]; then
-    shift
-    MODNAME=$1
-    LOCALPATH=$2
-    dgo_localize $MODNAME $LOCALPATH
-    dgo_update
-    exit 0
-fi
-if [ x"$COMMAND" == x"test" ]; then
-    dgo_test
-    exit 0
+    SUBCMD=$1
+    if [ x"$SUBCMD" == x"init" ]; then
+        MODNAME=$2
+        if [ x"$MODNAME" == x"" ]; then
+            print_warn "MODNAME is not set"
+            usage
+            exit 0
+        fi
+        run_cmd go mod init $MODNAME
+        exit 0
+    fi
+    if [ x"$SUBCMD" == x"update" ]; then
+        run_cmd go mod tidy
+        exit 0
+    fi
+    if [ x"$SUBCMD" == x"list" ]; then
+        run_cmd go list -m all
+        exit 0
+    fi
+    if [ x"$SUBCMD" == x"graph" ]; then
+        DOTFILE=$2
+        if [ x"$DOTFILE" == x"" ]; then
+            print_warn "DOTFILE is not set"
+            usage
+            exit 0
+        fi
+        dgo_dependency_graph $DOTFILE
+        exit 0
+    fi
+    if [ x"$SUBCMD" == x"redir" ]; then
+        MODNAME=$2
+        LOCALPATH=$3
+        if [ x"$MODNAME" == x"" ] || [ x"$LOCALPATH" == x"" ]; then
+            print_warn "MODNAME or LOCALPATH is not set"
+            usage
+            exit 0
+        fi
+        run_cmd go mod edit -replace $MODNAME=$LOCALPATH
+        run_cmd go mod tidy
+        exit 0
+    fi
 fi
 if [ x"$COMMAND" == x"run" ]; then
     shift
     FILEPATH=$1
-    dgo_run $FILEPATH
+    if [ x"$FILEPATH" == x"" ]; then
+        FILEPATH="."
+    fi
+    run_cmd go run $FILEPATH
     exit 0
 fi
 if [ x"$COMMAND" == x"build" ]; then
-    dgo_build
+    run_cmd go build
+    exit 0
+fi
+if [ x"$COMMAND" == x"vendor" ]; then
+    run_cmd go mod vendor
+    exit 0
+fi
+if [ x"$COMMAND" == x"test" ]; then
+    run_cmd go test -v
     exit 0
 fi
 if [ x"$COMMAND" == x"install" ]; then
-    dgo_install
+    run_cmd go install
     exit 0
 fi
 if [ x"$COMMAND" == x"inst-path" ]; then
-    dgo_instpath
+    run_cmd go list -f '{{.Target}}'
     exit 0
 fi
 usage
