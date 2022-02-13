@@ -82,6 +82,7 @@ cat << EOF
     8) Test your http server either by web-browser or curl
        Example [3]:
        Web: URL  http://localhost:8080/albums OR,
+       $ curl -X GET http://localhost:8080/albums
        $ curl http://localhost:8080/albums
 
             [
@@ -231,6 +232,21 @@ cat << EOF
             "artist": "Gerry Mulligan",
             "price": 17.99
         }
+
+    Curl Cheat Sheet
+    ================
+    $ curl http://localhost:8080/albums \\
+            --include \\
+            --header "Content-Type: application/json" \\
+            --request "POST" \\
+            --data '{"id": "4", "title": "The Modern Sound of Betty Carter", "artist": "Betty Carter", "price": 49.99}'
+
+    $ curl -X GET http://localhost:8080/albums
+
+    Postman Cheet Sheet
+    ===================
+    For RESTful API, we can also use postman (e.g. gmail login) to send GET and POST request to
+    http webserver. See https://www.postman.com/downloads/
 
     Reference
     =========
