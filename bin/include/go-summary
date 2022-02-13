@@ -6,39 +6,51 @@ cat << EOF
     Summary of Golang
     ==================
 
-    1) To set user Go install path
+    *  To set user Go install path
        $ go env -w GOBIN=$HOME/common/go/bin
        $ go env -w GOPATH=$HOME/common/go/
        $ go env -w GOMODCACHE=$HOME/common/go/pkg/mod
 
-    2) Go lang application is statically linked and uses go module to maintain
+    *  Go lang application is statically linked and uses go module to maintain
        application dependency by
        $ go mod init <module-name>'
 
-    3) Go app (filename.go) can be built and executed by
+    *  Go app (filename.go) can be built and executed by
        $ go run .
 
-    4) Search Go package at https://pkg.go.dev
+    *  Search Go package at https://pkg.go.dev
 
-    5) Tidy up Go module dependency when new module is added
+    *  Tidy up Go module dependency when new module is added
        $ go mod tidy
+       Note: downloaded modules are stored in $GOPATH/pkg/mod
 
-    6) Before Go package is published to Internet, you can temporarily replace
+    *  [Optional] To store all 3rd-party packages under Go module directory
+       $ go mod vendor
+       Note: <module>/vendor/modules.txt  - list all modules downloaded
+
+    *  Before Go package is published to Internet, you can temporarily replace
        the module external path to local path
        $ go mod edit -replace example.com/greeting=../greeting
 
        After the module path is updated, tidy the go module dependency
        $ go mod tidy
 
-    7) Go execute init() function automatically after global variables
+       List go module dependencies
+       $ go list -m all
+
+    *  Go execute init() function automatically after global variables
        have been initialized
 
-    8) Compile and Install the go program under:
+    *  Compile and Install the go program under:
        $ go build
        $ go install
 
-    9) To show Go installed path of a program
+    *  To show Go installed path of a program
        $ go list -f '{{.Target}}'
+
+    *  To install a Go package from github.com, e.g.
+       Note: package is installed into $GOPATH/mod/github.com/gin-gonic/gin
+       $ go get github.com/gin-gonic/gin
 
    VSCode Information
    ==================
