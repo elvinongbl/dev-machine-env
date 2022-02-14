@@ -67,7 +67,7 @@ PKGLIST_DEVTOOL=" \
  cmake p7zip-full p7zip-rar \
  squashfs-tools rpm \
  codespell \
- figlet \
+ figlet graphviz \
 "
 COMMENT_DEVTOOL="Development tools:"
 
