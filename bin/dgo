@@ -16,6 +16,8 @@ cat << EOF
         update              Update go module dependency
         list                List module dependency
         graph <filename>    Generate dependency graph
+        modgv <type> <filename> Another Go tool to generate dependency graph:
+                                type=[png, ps2]
         redir <modname> <path>  Redirect external Go package to point
                                 to local path and Update dependency
 
@@ -100,6 +102,36 @@ function dgo_dependency_graph() {
     rm $DOTFILE.dot
     if [ -f "$DOTFILE.svg" ]; then
         run_cmd open $DOTFILE.svg
+    else
+        print_warn "$DOTFILE.svg generation failed"
+    fi
+}
+
+# Note: Another Go tool to generate module graph is
+# https://github.com/lucasepe/modgv
+function dgo_dependency_modgv() {
+    local TYPE=$1
+    local FILENAME=$2
+    if [ x"$TYPE" != x"png" ] && [ x"$TYPE" != x"ps2" ]; then
+        print_warn "Incorrent type [png, ps2]"
+        usage
+        exit 0
+    fi
+    if [ x"$FILENAME" == x"" ]; then
+        print_warn "Incorrent filename"
+        usage
+        exit 0
+    fi
+
+    run_cmd go get github.com/lucasepe/modgv/modgv
+
+    print_cmd "go mod graph | modgv | dot -T$TYPE -o $FILENAME"
+    go mod graph | modgv | dot -T$TYPE -o $FILENAME.$TYPE
+
+    if [ -f $FILENAME.$TYPE ]; then
+        run_cmd open $FILENAME.$TYPE
+    else
+        print_warn "$FILENAME.$TYPE generation failed"
     fi
 }
 
@@ -143,6 +175,12 @@ if [ x"$COMMAND" == x"module" ]; then
         fi
         dgo_dependency_graph $DOTFILE
         exit 0
+    fi
+    if [ x"$SUBCMD" == x"modgv" ]; then
+        TYPE=$2
+        FILENAME=$3
+        dgo_dependency_modgv $TYPE $FILENAME
+        exit
     fi
     if [ x"$SUBCMD" == x"redir" ]; then
         MODNAME=$2
