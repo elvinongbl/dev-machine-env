@@ -243,6 +243,13 @@ cat << EOF
 
     $ curl -X GET http://localhost:8080/albums
 
+
+    Beautiful JSON
+    ==============
+    Sometimes, we want to beautify the json response and https://stedolan.github.io/jq/
+    is a lightweight and flexible command-line JSON processor.
+    $ <curl commands> | jq -r
+
     Postman Cheet Sheet
     ===================
     For RESTful API, we can also use postman (e.g. gmail login) to send GET and POST request to
