@@ -1,0 +1,93 @@
+#!/bin/bash
+#
+COMMAND=$1
+
+# include summary section under $MYBINTOP/include
+MYBINTOP=$HOME/common/bin
+SUMMARYLIST=("grafana")
+
+function usage() {
+cat << EOF
+    For module management:
+    dgrafana COMMAND
+        COMMAND:
+        autostart               Autostart Grafana server
+        start                   Start Grafana server
+        stop                    Stop Grafana server
+        status                  Status of Grafana server
+
+    dgrafana summary <topic>    Show summary of Grafana.
+                                topic=[${SUMMARYLIST[@]}]
+
+    Note:
+        To setup system to run Grafana, see scripts/setup-grafana.sh
+EOF
+}
+
+function run_cmd() {
+    COLOR='\033[0;36m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR\$ $@ $NCOLOR"
+    eval $@
+}
+
+function print_cmd() {
+    COLOR='\033[0;36m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR\$ $@ $NCOLOR"
+}
+
+function print_topic() {
+    echo -e "\n# $@"
+}
+
+function print_warn() {
+    COLOR='\033[0;31m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR $@ $NCOLOR"
+}
+
+function show_summary() {
+    local SUBTOPIC=$1
+
+    for i in ${!SUMMARYLIST[@]}; do
+        if [ x"$SUBTOPIC" == x"${SUMMARYLIST[$i]}" ]; then
+            local SUMMARY="summary_${SUBTOPIC}"
+            source $MYBINTOP/include/$SUBTOPIC-summary
+            $SUMMARY
+            exit 0
+        fi
+    done
+    usage
+}
+
+if [ x"$COMMAND" == x"help" ] || [ x"$COMMAND" == x"" ]; then
+    usage
+    exit 0
+fi
+if [ x"$COMMAND" == x"summary" ]; then
+    shift
+    SUBTOPIC=$1
+    show_summary $SUBTOPIC
+    exit 0
+fi
+if [ x"$COMMAND" == x"autostart" ]; then
+    run_cmd sudo systemctl daemon-reload
+    run_cmd sudo systemctl enable grafana-server.service
+    exit 0
+fi
+if [ x"$COMMAND" == x"start" ]; then
+    run_cmd sudo systemctl daemon-reload
+    run_cmd sudo systemctl start grafana-server
+    exit 0
+fi
+if [ x"$COMMAND" == x"status" ]; then
+    run_cmd sudo systemctl status grafana-server
+    exit 0
+fi
+if [ x"$COMMAND" == x"stop" ]; then
+    run_cmd sudo systemctl stop grafana-server
+    exit 0
+fi
+
+usage
