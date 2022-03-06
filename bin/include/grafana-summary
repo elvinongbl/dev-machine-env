@@ -1,0 +1,145 @@
+#!/bin/bash
+
+function summary_grafana() {
+cat << EOF
+
+    Summary of Grafana
+    ==================
+
+    * Grafana is web server application with multi-faceted data
+      visualization, analysis tool with alert notification
+      capabilities.
+
+    * Why Grafana?
+      * Fast: written in Go
+      * Open: support plugin model for (a) dashboard panels and
+        (b) data sources
+      * Beautiful: use attrative D3 library with fine-grain control
+        on graph elements (axes, lines, points, legends)
+      * Versatile: support wide variety of growing databases (>30).
+        A graph can display data from 1 or more different datasources.
+      * Free: Apache license with enterprise support plan option
+
+    * After Grafana installation completed (see Installation section),
+      connect to Grafana server through http://localhost:3000 by using
+      default username=admin and password=admin
+      After that, you will be asked to change password immediately.
+
+    Grafana UI Overview
+    ===================
+    * A Grafana dashboard is:
+      * A canvas that display one or more panels in grid-style arrangement.
+      * It is webpage, can be bookmark and share as URL link to others.
+      * Import and export as JSON and transferable to another Grafana
+        version.
+
+    * A dashboard panels:
+      * graphical data, textual, numerical data, spreadsheet tables
+
+    * Grafana app has 3 view modes:
+      * Dashboard + side menu
+      * Dashboard only
+      * Kiosk mode
+
+    * Dashboard settings allow us to change (select by side menu):
+      * General settings
+      * Annotations
+      * Variables
+      * Links
+      * JSON model
+
+    * [Side menu] >Create< allow us to
+      * Dashboard: add panels on it.
+      * Folder: To group dashboard into a folder.
+      * Import: To import from https://grafana.com or local JSON file
+      * Alert notification
+
+    * [Side menu] >Dashboard/playlist< allow us to create groupings of
+      dashboards orchestrated to run in particular sequence and timing
+      for automated Grafana-driven kiosk-type display.
+
+    * [Side menu] >Dashboard/Snapshots< allow us to capture the state
+      of a dashboard. A great way to demo your dashboard offline without
+      sharing your data sources.
+
+    * [Side menu] >Explore< allow us for ad hoc data exploration. It is
+      integrated with Loki (logging) and let user to corelate data with
+      logging for analysis.
+
+    * [Side menu] >Alerting< allow us to set rules, contact point,
+      policies, silences, alert groups. Notification can as simple as
+      email or integration plugin such as PagerDuty
+
+    * [Side menu] >Configuration< allow us to create:
+      * Data Sources, e.g. Prometheus, InfluxDB, Elasticsearch.
+        User needs to set data source server IP and port, authentication
+        credentials and name of the database.
+      * Users: invite new user with access levels control. It will
+               automatically generates email invitation.
+      * Teams: Assign folder and dashboard to team. Then, add users
+               under team to control dashboard and panel view.
+               Each team may have different tailored Grafana view.
+      * Plugins: listing of all installed data sources and panel
+        plugins.
+      * Preferences: global interface parameters for an organization.
+      * API keys: create API keys that lets software application to
+        interact with Grafana using RESTful API.
+
+    * [Side menu] >Server Admin<
+      * Grafana server settings such as user, password, role,org
+        Enterprise license.
+
+    Definition
+    ==========
+    * Time-series = data points with timestamp collected over a period of
+      time.
+    * Time-series dataset = Stored object containing 1 or more time-series
+    * Time-series database = app that provides access to 1 or more
+      datasets.
+      * NoSQL (non-tabular databases that store data differently than
+               relational tables)
+        Examples: InfluxDB, OpenTSDB, Prometheus, MongoDB
+      * SQL (store data in tabular and relational fashion)
+        Examples: PostgresSQL, MySQL
+
+    Installation
+    ============
+    A) Docker
+       $ docker volume create grafana-storage
+       $ docker run -d --name=grafana -p 3000:3000 \\
+                    -v grafana-storage:/var/lib/grafana \\
+                    grafana/grafana
+
+       Note: create an docker storage so that Grafana's internal
+             database will continue to exist.
+
+    B) MacOS (For non Apple Silicon)
+       To run as server:
+       $ brew install grafana
+       $ brew tap homebrew/services
+       $ brew services start grafana
+
+    C) RedHat distribution
+       $ wget https://dl.grafana.com/oss/release/grafana-$GRAFANA_VERSION.x86_64.rpm
+       $ sudo yum install initscripts urw-fonts
+       $ sudo yum localinstall grafana-$GRAFANA_VERSION.x86_64.rpm
+       $ systemctl daemon-reload
+       $ systemctl start grafana-server
+       $ systemctl status grafana-server
+       $ sudo systemctl enable grafana-server.service
+
+    D) Debian distribution
+       $ wget https://dl.grafana.com/oss/release/grafana_$GRAFANA_VERSION_amd64.deb
+       $ sudo apt-get install -y adduser libfontconfig1
+       $ sudo dpkg -i grafana_$GRAFANA_VERSION_amd64.deb
+       $ systemctl daemon-reload
+       $ systemctl start grafana-server
+       $ systemctl status grafana-server
+       $ sudo systemctl enable grafana-server.service
+
+    Reference
+    =========
+    [1] https://grafana.com/grafana/download
+
+EOF
+}
