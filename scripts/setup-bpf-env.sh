@@ -1,5 +1,8 @@
 #!/bin/bash
 
+PAHOLE_VERSION=v1.23
+LLVM_VERSION=llvmorg-14.0.0
+
 function print_topic() {
     echo -e "\n# $@"
 }
@@ -19,25 +22,37 @@ function print_cmd() {
     echo -e "$COLOR\$ $@ $NCOLOR"
 }
 
+# pahole (Poke-a-hole) is used to find "hole" in data-structure to make binary is optimized.
+# To analyze the object files, the source must be compiled with the debugging flag "-g". In the kernel,
+# this is activated by CONFIG_DEBUG_INFO, or "Kernel Hacking > Compile the kernel with debug info".
+#
 # pahole shows data structure layouts encoded in debugging information formats, DWARF, CTF and BTF being supported.
 # This is useful for, among other things: optimizing important data structures by reducing its size,
 # figuring out what is the field sitting at an offset from the start of a data structure, investigating ABI
 # changes and more generally understanding a new codebase you have to work with.
-function install_dwarves() {
-    if [ -d $HOME/public-repos/dwarves ]; then
+#
+# Reference:
+# * https://lwn.net/Articles/335942/
+# * https://landley.net/kdocs/ols/2007/ols2007v2-pages-35-44.pdf
+function install_pahole() {
+    if [ -d $HOME/public-repos/pahole ]; then
         # dwarves depends on DWARF
         run_cmd sudo apt install libdw-dev
         run_cmd CWD=$(pwd)
-        run_cmd cd $HOME/public-repos/dwarves
+        run_cmd cd $HOME/public-repos/pahole
+        run_cmd git checkout ${PAHOLE_VERSION}
+        run_cmd rm -rf build
         run_cmd mkdir -p build
         run_cmd cd build
         run_cmd cmake -D__LIB=lib ..
         run_cmd sudo make install
+        run_cmd cd $HOME/public-repos/pahole
+        run_cmd git checkout master
         run_cmd sudo ldconfig
         run_cmd cd $CWD
         run_cmd pahole --version
     else
-        echo -e "dwarves is not found. Please run init-repos.sh first"
+        echo -e "pahole is not found. Please run init-repos.sh first"
         exit
     fi
 }
@@ -49,12 +64,16 @@ function install_llvm() {
        run_cmd sudo apt install ninja-build
        run_cmd CWD=$(pwd)
        run_cmd cd $HOME/public-repos/llvm-project/
-       run_cmd mkdir -p build
-       run_cmd cd build
-       print_cmd 'cmake ../llvm -G "Ninja" -DLLVM_TARGETS_TO_BUILD="BPF;X86" -DLLVM_ENABLE_PROJECTS="clang" -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi" -DCMAKE_INSTALL_PREFIX="/usr/local" -DCMAKE_BUILD_TYPE=Release -DLLVM_BUILD_RUNTIME=OFF'
-       cmake ../llvm -G "Ninja" -DLLVM_TARGETS_TO_BUILD="BPF;X86" -DLLVM_ENABLE_PROJECTS="clang" -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi" -DCMAKE_INSTALL_PREFIX="/usr/local" -DCMAKE_BUILD_TYPE=Release -DLLVM_BUILD_RUNTIME=OFF
+       run_cmd git checkout ${LLVM_VERSION}
+       run_cmd rm -rf llvm/build
+       run_cmd mkdir -p llvm/build
+       run_cmd cd llvm/build
+       print_cmd 'cmake .. -G "Ninja" -DLLVM_TARGETS_TO_BUILD="BPF;X86" -DLLVM_ENABLE_PROJECTS="clang" -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi" -DCMAKE_INSTALL_PREFIX="/usr/local" -DCMAKE_BUILD_TYPE=Release -DLLVM_BUILD_RUNTIME=OFF'
+       cmake .. -G "Ninja" -DLLVM_TARGETS_TO_BUILD="BPF;X86" -DLLVM_ENABLE_PROJECTS="clang" -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi" -DCMAKE_INSTALL_PREFIX="/usr/local" -DCMAKE_BUILD_TYPE=Release -DLLVM_BUILD_RUNTIME=OFF
        run_cmd ninja
        run_cmd sudo ninja install
+       run_cmd cd $HOME/public-repos/llvm-project/
+       run_cmd git checkout master
        run_cmd which llc
        run_cmd llc --version
        run_cmd cd $CWD
@@ -69,7 +88,7 @@ function setup_linux_bpf_env() {
        run_cmd sudo apt install -y libcap-dev
 }
 
-install_dwarves
+install_pahole
 install_llvm
 setup_linux_bpf_env
 
