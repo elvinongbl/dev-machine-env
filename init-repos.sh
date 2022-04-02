@@ -16,7 +16,6 @@ GITHUB_REPOS=" \
 
 PUBLIC_REPOS=" \
     https://github.com/chipsec/chipsec.git \
-    https://github.com/acmel/dwarves.git \
     https://git.kernel.org/pub/scm/devel/pahole/pahole.git \
     https://github.com/tianocore/edk2-staging.git \
     https://github.com/intel/iotg_tsn_ref_sw.git \
