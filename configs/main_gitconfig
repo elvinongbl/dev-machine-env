@@ -58,7 +58,7 @@
 [core]
     abbrev = 11
     editor = vim
-    gitproxy = $HOME/common/bin/socatproxy
+    gitproxy = socatproxy
     whitespace = trailing-space,tab-in-indent
     pager = sed 's/\t/>-------/g' | less -R
 
