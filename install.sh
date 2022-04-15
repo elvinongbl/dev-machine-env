@@ -12,6 +12,7 @@ function usage() {
     echo -e "./install.sh all work|home"
     echo -e "./install.sh myenv work|home"
     echo -e "./install.sh mycmd"
+    echo -e "./install.sh python"
     echo -e "./install.sh package"
 }
 
@@ -20,6 +21,12 @@ function usage() {
 ######################################
 function print_topic() {
     echo -e "\n# $@"
+}
+
+function print_warn() {
+    COLOR='\033[0;31m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR $@ $NCOLOR"
 }
 
 function print_banner() {
@@ -259,6 +266,24 @@ function setup_fuse_conf() {
     run_cmd sudo sed -i "s|#user_allow_other|user_allow_other|g" /etc/fuse.conf
 }
 
+function setup_python_virtualenv() {
+    # Python virtual env works since Python 3.6 provides a python
+    # sandbox with its own set of Python packages from your
+    # underlying system-wide site-packages. This allows clear Python
+    # dependencies and avoid cluttered environment.
+    if [ x"$(which pip)" == x"" ]; then
+        print_warn "pip not found !!!"
+        print_topic "Automatically run \"$ scripts/setup-pip.sh install\" ..."
+        run_cmd "./scripts/setup-pip.sh install"
+    fi
+
+    if [ x"$(which virtualenv)" == x"" ]; then
+        print_warn "virtualenv not found !!!"
+        print_topic "Automatically install virtualenv"
+        run_cmd "pip install -U virtualenv"
+    fi
+}
+
 ######################################
 # Main installation flow
 ######################################
@@ -271,6 +296,7 @@ if [ x"$CHOICE" == x"all" ]; then
     setup_vncserver
     install_git_credential_manager_latest
     setup_fuse_conf
+    setup_python_virtualenv
 
     print_banner "Machine environment setup: COMPLETE."
     print_topic "Now, you may source ~/.bashrc to refresh"
@@ -288,6 +314,12 @@ if [ x"$CHOICE" == x"package" ]; then
     print_banner "Install: package (Software Package)"
     install_packages
     print_topic "Install: package : Completed"
+fi
+
+if [ x"$CHOICE" == x"python" ]; then
+    print_banner "Install: Python environment"
+    setup_python_virtualenv
+    print_topic "Install: Python environment : Completed"
 fi
 
 if [ x"$CHOICE" == x"myenv" ]; then
