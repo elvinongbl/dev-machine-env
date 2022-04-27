@@ -36,6 +36,7 @@ PUBLIC_REPOS=" \
     https://github.com/the-tcpdump-group/libpcap \
     https://github.com/getpatchwork/git-pw \
     git://git.kernel.org/pub/scm/utils/rt-tests/rt-tests.git \
+    git clone git://github.com/acpica/acpica.git \
 "
 
 BPFXDP_REPOS=" \
