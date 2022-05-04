@@ -1,0 +1,100 @@
+#!/bin/bash
+#
+COMMAND=$1
+
+# include summary section under $MYBINTOP/include
+MYBINTOP=$HOME/common/bin
+MYPYTHONVIRTENV=$HOME/workspace/python-virtenvs
+source $MYBINTOP/include/python-summary
+TOPICLIST=("virtualenv" "pip" "doc" "poetry")
+
+function usage() {
+cat << EOF
+    For module management:
+    dpython COMMAND
+        COMMAND:
+        virtenv [proj]          Create & activate project virtual environment
+
+    dpython summary <topic>     Show summary of Python.
+                                topic=[${TOPICLIST[@]}]
+
+    Note:
+        To setup pip, execute $ ./scripts/setup-pip.sh
+        To setup virtualenv, execute $ ./install.sh python
+EOF
+}
+
+function run_cmd() {
+    COLOR='\033[0;36m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR\$ $@ $NCOLOR"
+    eval $@
+}
+
+function print_cmd() {
+    COLOR='\033[0;36m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR\$ $@ $NCOLOR"
+}
+
+function print_topic() {
+    echo -e "\n# $@"
+}
+
+function print_warn() {
+    COLOR='\033[0;31m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR $@ $NCOLOR"
+}
+
+function show_summary() {
+    local SUBTOPIC=$1
+    for i in ${!TOPICLIST[@]}; do
+        if [ x"$SUBTOPIC" == x"${TOPICLIST[$i]}" ]; then
+            local SUMMARY="summary_python_${SUBTOPIC}"
+            $SUMMARY
+            exit 0
+        fi
+    done
+    usage
+}
+
+function virtenv_activate() {
+    local PROJNAME=$1
+    local PROJPATH=${MYPYTHONVIRTENV}/${PROJNAME}
+
+    # Create a TOP directory for Python virtual environments
+    run_cmd "mkdir -p ${MYPYTHONVIRTENV}"
+
+    if [ ! -d $PROJPATH ]; then
+        print_topic "Python env $PROJNAME not found. Create it using poetry"
+        run_cmd "cd ${MYPYTHONVIRTENV}"
+        run_cmd "poetry new ${PROJNAME}"
+    fi
+
+    if [ -d $PROJPATH ]; then
+        print_topic "Next step:"
+        print_cmd "cd $PROJPATH"
+        print_cmd "poetry shell"
+        print_topic "Note: Type \"deactivate\" to exit the virtual environment. "
+    fi
+}
+
+if [ x"$COMMAND" == x"help" ] || [ x"$COMMAND" == x"" ]; then
+    usage
+    exit 0
+fi
+if [ x"$COMMAND" == x"summary" ]; then
+    shift
+    SUBTOPIC=$1
+    show_summary $SUBTOPIC
+    exit 0
+fi
+if [ x"$COMMAND" == x"virtenv" ]; then
+    shift
+    PROJPATH=$1
+    virtenv_activate $PROJPATH
+    exit 0
+fi
+
+usage

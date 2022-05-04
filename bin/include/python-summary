@@ -1,0 +1,220 @@
+#!/bin/bash
+
+function summary_python_virtualenv() {
+cat << EOF
+
+    Summary of Python Virtual Environment
+    =====================================
+
+    * "virtualenv" is used to create isolated Python environments
+       (Python interpreter and packages within it).
+
+    * It is used to solve problems related to package dependencies,
+      version and permissions.
+
+    * The isolated environment allows its own installation directories
+      and does not share libraries with other virtualenv environment.
+
+    * Virtualenv is not portable and may have broken parts when moved
+      between directories on the same filesystem or between computers
+      and operating systems.
+
+    * As virtualenv is not portable, one can use 'pip freeze' to dump
+      all Python environment. However, the list may contain other package
+      that you have installed earlier and the list can grow to be very
+      big.
+
+    * For project that requires good package dependencies management,
+      a tool known as 'Poetry' is a better tool.
+
+    * If your project has external and low-level dependencies, system-
+      level isolation such as virtualization tools (VMware, VirtualBox)
+      or container systems (Docker and Rocket) is better approach than
+      application level isolation provided by virtualenv.
+
+    Installation
+    ============
+    $ pip install -U virtualenv
+
+    Usage
+    =====
+    * To create virtual environment
+      $ virtualenv -p $(which python3) <my_proj_env>
+      OR,
+      $ python3.9 -m venv <env name>
+
+      Note: It create <env name> directory with sub-directories:-
+            bin/ - Python executables
+            scripts/ - executables provided by other packages
+            lib/ and include/ - supporting library files for the new
+                                Python interpreter inside the virtual
+                                environment.
+      Note: New packages are installed in <env-name>/lib/pythonX.Y/
+            site-packages
+
+    * To activate your project environment
+      $ source <my_proj_env>/bin/activate
+      OR
+      $ . <my_proj_env>/bin/activate
+
+    * To deactivate your project environment
+    (my_proj_env) $ deactivate
+
+    * As Inside virtual environment, you can use 'pip' to reconstruct
+      the environment
+      $ pip install -r requirement.txt
+
+    * Example of requirement.txt
+      -------------------------------
+      eventlet==0.17.4
+      graceful==0.1.1
+      falcon>=0.3.0,<0.5.0
+      pytz
+      -------------------------------
+
+    Reference
+    =========
+    [1] https://virtualenv.pypa.io/en/latest/
+
+EOF
+}
+
+function summary_python_pip() {
+cat << EOF
+
+    Summary of PIP (Pip Installs Packages)
+    =====================================
+
+    * Each Python version has its own pip.
+
+    * Operation of pip:-
+      - Connect to PyPI repo at https://pypi.python.org/pypi
+      - Download and install the appropriate package to the
+        site-packages.
+
+    * Under virtualenv, pip and python are linked to the Python
+      version that you specify when you create the env.
+
+    * If you are not under virtual environment, use
+      $ python3.5 -m pip install <something>
+      $ python3.8 -m pip install <something>
+
+    Installation
+    ============
+    * Starting from version 2.7.9 and 3.4 of CPython, every Python
+      release comes with an 'ensurepip' module [1]:
+      $ python3 -m ensurepip
+
+    Usage
+    =====
+    * To install Python package
+      $ pip install <package-name>
+
+      Note: pip installs new package from Python Package Index (PyPI) into
+            one of the available site-packages directories.
+      Note: pip installs a particular verstion and may overwrite the
+            version in global site-packages. This may overwrite the version
+            patched by your Linux distro.
+
+    * To inspect paths where Python searches for modules and packages
+      $ python3 -m site
+
+      Note: Packages installed in local site-packages (USER_SITE) will
+            take precendence over packages installed in the global
+            site-paclages
+
+    * To install packages on USER_SITE
+      $ pip install --user <package-name>
+
+      Note: without --user, pip tries to install to global site-packages
+            and fall-back to user site-packages if that is not possible.
+            Use 'sudo' if you need to install on global site-packages.
+            $ sudo -H pip install <package-name>.
+
+    * To list installed packages
+      $ pip list
+
+    * To show package information
+      $ pip show <package name>
+
+    * To uninstall package
+      $ pip uninstall <package name>
+
+    * To output all installed packages in requirements format
+      $ pip freeze
+
+    Reference
+    =========
+    [1] https://pip.pypa.io/en/stable/installation/
+
+EOF
+}
+
+function summary_python_doc() {
+cat << EOF
+
+    * PEP (Python Enhancement Proposal) is where community discussion about
+      major releases, architecture and design changes going into Python.
+      https://peps.python.org/
+
+    * Python Weekly
+      https://www.pythonweekly.com/
+
+    * PyCoder's Weekly
+      https://pycoders.com/
+
+    * A curated list of awesome Python frameworks, libraries, software and resources.
+      https://github.com/vinta/awesome-python
+
+    * Interesting and valuable articles divided into 100 categories
+      https://github.com/kirang89/pycrumbs
+
+    * Curates decibans of Python libraries and resources for scientific programming
+      and mathematical and statistical computing.
+      https://github.com/svaksha/pythonidae
+
+EOF
+}
+
+function summary_python_poetry() {
+cat << EOF
+
+  Summary of Poetry as dependency management system
+  =================================================
+
+  * Poetry is dependency management for Python virtual environment.
+
+  Installation
+  ============
+  $ pip install --user poetry
+  OR
+  $ curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+
+  Usage
+  =====
+  * To create a new virtual environment with Poetry
+    $ poetry new <my-project>
+
+    Note: the core of Poetry is 'pyproject.toml' which stores project configuration.
+
+  * To initialize an exisiting project to be managed by Poetry
+    $ poetry init
+
+  * To enter virtual environment created by Poetry
+    $ cd <project>
+    $ poetry shell
+
+  * To add new package to virtual environment
+    $ poetry add <package name>
+
+  * To lock an environment (to avoid dependency issue)
+    $ poetry lock
+    Note: this will create a verbose poetry.lock file (snapshot of dependency resolution
+          process.
+
+  Reference
+  =========
+  [1] https://python-poetry.org/
+
+EOF
+}
