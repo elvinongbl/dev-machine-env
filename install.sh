@@ -282,6 +282,12 @@ function setup_python_virtualenv() {
         print_topic "Automatically install virtualenv"
         run_cmd "pip install -U virtualenv"
     fi
+
+    if [ x"$(which poetry)" == x"" ]; then
+        print_warn "poetry not found !!!"
+        print_topic "Automatically install poetry"
+        run_cmd "pip install -U poetry"
+    fi
 }
 
 ######################################
