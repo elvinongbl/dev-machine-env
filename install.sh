@@ -75,6 +75,7 @@ PKGLIST_DEVTOOL=" \
  squashfs-tools rpm \
  codespell \
  figlet graphviz \
+ gnuplot \
 "
 COMMENT_DEVTOOL="Development tools:"
 
