@@ -349,7 +349,7 @@ EOF
 }
 
 function summary_docker_dockerfile() {
-car << EOF
+cat << EOF
 
     Summary of Dockerfile
     =====================
@@ -373,6 +373,33 @@ car << EOF
       CMD ["<param>", ...] :    Specifies default arguments for image entry points.
 
       WORKDIR <dir> :           Sets the current working directory for INSTRUCTION
+
+EOF
+}
+
+function summary_docker_set-proxy() {
+cat << EOF
+
+    * Docker uses Systemd service configuration for proxy setting
+      instead of the global environment variable
+
+    * Docker engine uses /etc/systemd/system/docker.service.d/proxy.conf
+
+    * Example of proxy.conf [1]:-
+      ------------------------------------------------------------------
+      [Service]
+      Environment="HTTP_PROXY=http://myproxy.hostname:8080"
+      Environment="HTTPS_PROXY=https://myproxy.hostname:8080/"
+      Environment="NO_PROXY="localhost,127.0.0.1,::1"
+      ------------------------------------------------------------------
+
+    * Reload daemon and restart docker.service
+      $ sudo systemctl daemon-reload
+      $ sudo systemctl restart docker.service
+
+    Reference
+    =========
+    [1] https://www.serverlab.ca/tutorials/containers/docker/how-to-set-the-proxy-for-docker-on-ubuntu/
 
 EOF
 }
