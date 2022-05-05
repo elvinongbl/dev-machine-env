@@ -50,14 +50,15 @@ function install_docker() {
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
     run_cmd "sudo apt-get update"
     # Always install the highest version
-    run_cmd "sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin"
+    run_cmd "sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-compose"
     run_cmd "sudo systemctl start docker"
     run_cmd "sudo systemctl status docker"
     run_cmd "sudo docker run hello-world"
     # Notes:
     # List the versions available in your repo
     # $ apt-cache madison docker-ce
-    # $ sudo apt-get install docker-ce=<VERSION_STRING> docker-ce-cli=<VERSION_STRING> containerd.io docker-compose-plugin
+    # $ apt-cache madison docker-compose
+    # $ sudo apt-get install docker-ce=<VERSION_STRING> docker-ce-cli=<VERSION_STRING> containerd.io docker-compose-plugin docker-compose=<VERSION_STRING>
 }
 
 function uninstall_old_docker() {
@@ -67,7 +68,7 @@ function uninstall_old_docker() {
 }
 
 function uninstall_docker() {
-    run_cmd "sudo apt-get purge docker-ce docker-ce-cli containerd.io docker-compose-plugin"
+    run_cmd "sudo apt-get purge docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-compose"
     print_topic "To delete images, containers, volumes or customized configuration:"
     print_cmd "sudo rm -rf /var/lib/docker"
     print_cmd "sudo rm -rf /var/lib/containerd"
