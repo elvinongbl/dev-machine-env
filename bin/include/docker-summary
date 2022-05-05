@@ -316,7 +316,7 @@ cat << EOF
 EOF
 }
 
-function summary_docker_demoapache() {
+function summary_docker_demo-apache() {
 cat << EOF
 
     ############################################
@@ -344,6 +344,35 @@ cat << EOF
     $ docker run -dit -p 9090:80 ubuntu/apache-server:1.0 /bin/bash
 
     # Use browser to open URL localhost:9090
+
+EOF
+}
+
+function summary_docker_dockerfile() {
+car << EOF
+
+    Summary of Dockerfile
+    =====================
+    * Dockerfile describes every layer of Docker image in following
+      format:
+      INSTRUCTION arguments
+
+      FROM <image-name> :       Base image that Docker image is based on.
+                                Default Docker image at https://hub.docker.com
+
+      COPY <src>... <dst> :     Copies files from local build to container's filesystem
+
+      ADD <src>... <dst> :      Similar to COPY but automatically unpacks archives and
+                                allows <src> to be URLs.
+
+      RUN <command> :           Run command on top of previous layers.
+
+      ENTRYPOINT ["<exec>", "<param>", ...] :   Default command to be run as container starts.
+                                                Docker defaults to /bin/sh -c
+
+      CMD ["<param>", ...] :    Specifies default arguments for image entry points.
+
+      WORKDIR <dir> :           Sets the current working directory for INSTRUCTION
 
 EOF
 }

@@ -5,7 +5,7 @@ COMMAND=$1
 # include summary section under $MYBINTOP/include
 MYBINTOP=$HOME/common/bin
 source $MYBINTOP/include/docker-summary
-TOPICLIST=("overview" "run" "build" "demoapache")
+TOPICLIST=("overview" "run" "build" "demo-apache" "dockerfile")
 DOCKERFILES=("apache")
 
 function usage() {
