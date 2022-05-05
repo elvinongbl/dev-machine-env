@@ -377,6 +377,45 @@ cat << EOF
 EOF
 }
 
+function summary_docker_docker-compose() {
+cat << EOF
+
+    Summary of Docker Compose
+    =========================
+    * A tool used to define (in YAML) and running multi-container Docker applications.
+
+    * Three-step process:
+      1) Use Dockerfile to define your app's Docker image build and environment
+      2) Define the services that you app uses in docker-compose.yaml so that
+         each service run together in isolated environment.
+      3) Use 'docker compose up' or 'docker-compose up' to start and run your app
+
+    * Example of docker-compose.yaml [1]:
+        ---------------------------------------------------------------------------
+        version: "3.9"  # optional since v1.27.0
+        services:
+            web:
+                build: .
+                ports:
+                    - "8000:5000"
+                volumes:
+                    - .:/code
+                    - logvolume01:/var/log
+                links:
+                    - redis
+            redis:
+                image: redis
+        volumes:
+            logvolume01: {}
+        ---------------------------------------------------------------------------
+
+    Reference
+    =========
+    [1] https://docs.docker.com/compose/
+
+EOF
+}
+
 function summary_docker_set-proxy() {
 cat << EOF
 
