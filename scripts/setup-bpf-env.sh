@@ -2,6 +2,7 @@
 
 PAHOLE_VERSION=v1.23
 LLVM_VERSION=llvmorg-14.0.0
+ELFUTILS_VERSION=elfutils-0.186
 
 function print_topic() {
     echo -e "\n# $@"
@@ -20,6 +21,32 @@ function print_cmd() {
     COLOR='\033[0;36m'
     NCOLOR='\033[0m'
     echo -e "$COLOR\$ $@ $NCOLOR"
+}
+
+# https://sourceware.org/elfutils/
+# http://cgit.openembedded.org/openembedded-core/tree/meta/recipes-devtools/elfutils/elfutils_0.186.bb?h=master
+function install_elfutils() {
+    if [ -d $HOME/public-repos/elfutils ]; then
+        run_cmd sudo apt install autopoint libzip-dev
+        run_cmd CWD=$(pwd)
+        run_cmd cd $HOME/public-repos/elfutils
+        run_cmd git checkout ${ELFUTILS_VERSION}
+
+        # autoreconf requires autopoint
+        run_cmd autoreconf -i -f
+        run_cmd ./configure --prefix=/usr --disable-debuginfod --enable-libdebuginfod=dummy
+        run_cmd make
+        run_cmd make check
+        run_cmd sudo make -C libelf install
+        run_cmd sudo install -vm644 config/libelf.pc /usr/lib/pkgconfig
+
+        run_cmd git checkout master
+        run_cmd sudo ldconfig
+        run_cmd cd $CWD
+    else
+        echo -e "elfutils is not found. Please run init-repos.sh first"
+        exit
+    fi
 }
 
 # pahole (Poke-a-hole) is used to find "hole" in data-structure to make binary is optimized.
@@ -88,7 +115,7 @@ function setup_linux_bpf_env() {
        run_cmd sudo apt install -y libcap-dev
 }
 
-install_pahole
+install_elfutils
 install_llvm
+install_pahole
 setup_linux_bpf_env
-
