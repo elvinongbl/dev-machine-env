@@ -143,6 +143,17 @@ cat << EOF
     * To output all installed packages in requirements format
       $ pip freeze
 
+    Proxy
+    =====
+    * Pip does not use global environment variables for network proxy.
+      It uses /etc/pip.conf
+
+    * Example of /etc/pip.conf
+      -------------------------------------------
+      [global]
+      proxy = http://myproxy.hostname:8080
+      -------------------------------------------
+
     Reference
     =========
     [1] https://pip.pypa.io/en/stable/installation/
