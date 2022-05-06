@@ -469,3 +469,64 @@ EOF
 
 run_cmd cat Dockerfile
 }
+
+function show_dockerfile_python-echo() {
+cat << EOF > Dockerfile
+################################
+# Dockerfile for Echo Python app
+################################
+
+# Alpine Linux is compact Linux base image
+# that gives very small size
+FROM alpine:3.13
+WORKDIR /app/
+
+# '--no-cache' : ignore the existing cache of package
+#   lists so it will install the latest package version
+#   that is available officially in the package
+#   repository.
+#   It won't update the existing package lists cache,
+#   so the layer created by this INSTRUCTION is not taking
+#   big storage
+RUN apk add --no-cache python3
+COPY requirements.txt .
+
+# Running multiple commands in one Docker INSTRUCTION
+# will help reduce the image size. This is particularly
+# true if we install and uninstall py3-pip after it has
+# accomplished its purpose.
+RUN apk add --no-cache py3-pip && \
+    pip3 install -r requirements.txt && \
+    apk del py3-pip
+
+COPY echo.py .
+
+CMD ["python", "echo.py"]
+EOF
+
+run_cmd cat Dockerfile
+
+cat << EOF > requirements.txt
+flask==2.1.2
+EOF
+
+run_cmd cat requirements.txt
+
+cat << EOF > echo.py
+from flask import Flask, request
+app = Flask(__name__)
+
+@app.route('/')
+def echo():
+    return (
+        f"METHOD: {request.method}\n"
+        f"HEADERS:\n{request.headers}"
+        f"BODY:\n{request.data.decode()}"
+)
+
+if __name__ == '__main__':
+    app.run(host="0.0.0.0")
+EOF
+
+run_cmd cat echo.py
+}

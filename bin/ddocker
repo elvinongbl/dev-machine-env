@@ -6,7 +6,7 @@ COMMAND=$1
 MYBINTOP=$HOME/common/bin
 source $MYBINTOP/include/docker-summary
 TOPICLIST=("overview" "run" "build" "demo-apache" "dockerfile" "set-proxy" "docker-compose")
-DOCKERFILES=("apache")
+DOCKERFILES=("apache" "python-echo")
 
 function usage() {
 cat << EOF
