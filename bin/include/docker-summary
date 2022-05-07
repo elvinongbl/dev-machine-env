@@ -409,6 +409,196 @@ cat << EOF
             logvolume01: {}
         ---------------------------------------------------------------------------
 
+    Services inside Docker Compose Environment
+    ==========================================
+    * Docker compose allows us to specify multiple services to be run for Dockerized
+      app.
+
+    * Docker compose example:-
+      ---------------------------------------
+        version: '3.8'
+        services:
+            echo-server:
+                build: .
+                ports:
+                    - "5000:5000"
+                tty: true
+
+            database:
+                image: postgres
+                restart: always
+      ---------------------------------------
+
+    * Docker Compose will create a dedicated Docker network by default and will register
+      all services in that network using their names as their hostnames. For example:-
+      - http://echo-server:5000
+      - database:5432
+      Note: echo-server service can use the database:5432 address to communicate with
+            the database (5432 is the default PostgreSQL port).
+
+    * The best approach is to use environment variables that can be read by your application
+      on startup instead of using the hard-coded/default name
+      ---------------------------------------
+        version: '3.8'
+        services:
+            echo-server:
+                build: .
+                ports:
+                    - "5000:5000"
+                tty: true
+                environment:
+                    - DATABASE_HOSTNAME=database
+                    - DATABASE_PORT=5432
+                    - DATABASE_PASSWORD=password
+
+            database:
+                image: postgres
+                restart: always
+                environment:
+                    POSTGRES_PASSWORD: password
+      ---------------------------------------
+
+    * For databases, we should mount a volume inside a container
+      under the directory where the data is supposed to be stored to
+      prevent data-loss when Container exits.
+
+    * By default, a Dockerized application has its own isolated Docker
+      network and only services defined under docker-compose.yml may
+      access the isolated network. If you need multiple applications
+      to share the same Docker network, we can define named Docker
+      network under each docker-compose.yml. From example:-
+      ---------------------------------------
+        version: '3.8'
+
+        networks:
+            default:
+                external:
+                    name: my-interservice-network
+        services:
+            echo-server:
+                build: .
+                ports:
+                    - "5000:5000"
+                tty: true
+                environment:
+                    - DATABASE_HOSTNAME=database
+                    - DATABASE_PORT=5432
+                    - DATABASE_PASSWORD=password
+
+            database:
+                image: postgres
+                restart: always
+                environment:
+                    POSTGRES_PASSWORD: password
+      ---------------------------------------
+    * The named Docker network is not created by Docker compose.
+      You need to use docker CLI to create it:-
+      $ docker network create my-interservice-network
+
+    * If services under Docker environment has dependency/order, we can
+      use 'depends_on' to specify its dependency. From example:-
+      ---------------------------------------
+        version: '3.8'
+
+        networks:
+            default:
+                external:
+                    name: my-interservice-network
+        services:
+            echo-server:
+                build: .
+                ports:
+                    - "5000:5000"
+                tty: true
+                depends_on:
+                    - database
+                environment:
+                    - DATABASE_HOSTNAME=database
+                    - DATABASE_PORT=5432
+                    - DATABASE_PASSWORD=password
+
+            database:
+                image: postgres
+                restart: always
+                environment:
+                    POSTGRES_PASSWORD: password
+      ---------------------------------------
+
+    * Sometimes, 'depends_on' is not sufficient as it does not guarantee
+      that the service is fully opened. So, we can use 'wait-for-it' python
+      Python utility for such purpose. For example:-
+      ---------------------------------------
+        version: '3.8'
+
+        networks:
+            default:
+                external:
+                    name: my-interservice-network
+        services:
+            echo-server:
+                build: .
+                ports:
+                    - "5000:5000"
+                tty: true
+                depends_on:
+                    - database
+                command:
+                    wait-for-it --service database:5432 -- python3 echo.py
+                environment:
+                    - DATABASE_HOSTNAME=database
+                    - DATABASE_PORT=5432
+                    - DATABASE_PASSWORD=password
+
+            database:
+                image: postgres
+                restart: always
+                environment:
+                    POSTGRES_PASSWORD: password
+      ---------------------------------------
+
+    * Iteratively rebuild application through Dockerfile and docker-compose.yml
+      maybe counter-productive especially if your app is still under development.
+      A smarter way is to bind your local file-system (where the app resides) to
+      your container as volume. So, any changes on host's file-system will be
+      reflected in your application.
+
+      Python utility 'watchdog[watchmedo]' is an useful tool that watch for any
+      changes in the files and restart the command if it does.
+      $ watchmedo auto-restart --patterns "*.py" --recursive -- command [...]
+
+      From example:-
+      ---------------------------------------
+        version: '3.8'
+
+        networks:
+            default:
+                external:
+                    name: my-interservice-network
+        services:
+            echo-server:
+                build: .
+                ports:
+                    - "5000:5000"
+                tty: true
+                volumes:
+                    - .:/app/
+                depends_on:
+                    - database
+                command:
+                    watchmedo auto-restart --patterns "*.py" --recursive -- python3 echo.py
+                    wait-for-it --service database:5432 -- python3 echo.py
+                environment:
+                    - DATABASE_HOSTNAME=database
+                    - DATABASE_PORT=5432
+                    - DATABASE_PASSWORD=password
+
+            database:
+                image: postgres
+                restart: always
+                environment:
+                    POSTGRES_PASSWORD: password
+      ---------------------------------------
+
     Reference
     =========
     [1] https://docs.docker.com/compose/
