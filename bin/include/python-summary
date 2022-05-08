@@ -229,3 +229,62 @@ cat << EOF
 
 EOF
 }
+
+function summary_python_ipython() {
+cat << EOF
+
+  Summary of IPython
+  ==================
+  * An extended Python command shell that provides functionalities e.g.,
+    - Dynamic object introspection
+    - System shell access from the prompt
+    - Multiline code editing
+    - Syntax highlighting
+    - Copy-paste helpers
+    - Direct profiling support
+    - Debugging facilities
+
+  * IPython can be installed from:-
+    a) pip install ipython
+    b) IPython is a part of a larger project called Jupyter, which
+       provides interactive notebooks with live code that can be
+       written in many different languages.
+       https://jupyter.org/install
+
+  * Jupyter notebook will soon be replaced with Jupyter lab:
+    https://github.com/jupyterlab/jupyterlab
+
+  * Inside ipython, we can use ? or ?? to instrospect function and its
+    documents:-
+    ----------------------------------------------------------------------
+    In [5]: import urllib
+
+    In [6]: urllib.parse.urlunparse?
+        Signature: urllib.parse.urlunparse(components)
+        Docstring:
+        Put a parsed URL back together again.  This may result in a
+        slightly different, but equivalent URL, if the URL that was parsed
+        originally had redundant delimiters, e.g. a ? with an empty query
+        (the draft states that these are equivalent).
+        File:      ~/opt/anaconda3/lib/python3.8/urllib/parse.py
+        Type:      function
+
+    In [7]: urllib.parse.urlunparse??
+        Signature: urllib.parse.urlunparse(components)
+        Source:
+        def urlunparse(components):
+            """Put a parsed URL back together again.  This may result in a
+            slightly different, but equivalent URL, if the URL that was parsed
+            originally had redundant delimiters, e.g. a ? with an empty query
+            (the draft states that these are equivalent)."""
+            scheme, netloc, url, params, query, fragment, _coerce_result = (
+                                                          _coerce_args(*components))
+            if params:
+                url = "%s;%s" % (url, params)
+            return _coerce_result(urlunsplit((scheme, netloc, url, query, fragment)))
+        File:      ~/opt/anaconda3/lib/python3.8/urllib/parse.py
+        Type:      function
+    ----------------------------------------------------------------------
+
+EOF
+}
