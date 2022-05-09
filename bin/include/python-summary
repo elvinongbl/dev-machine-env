@@ -288,3 +288,39 @@ cat << EOF
 
 EOF
 }
+
+function summary_python_debugging() {
+cat << EOF
+
+  Summary of Python debugging
+  ===========================
+  * Python debugger is known as 'pdb'.
+
+  * To enter post-mortem debugging if program exits abnormally:-
+    $ python3 -m pdb -c continue script.py
+    OR
+    $ python3 -i script.py
+
+  * Once the interactive session is opened, start the post-mortem
+    debugging session as follow:-
+    >>> import pdb
+    >>> pdb.pm()
+
+  * You can insert break-point to your code by using 'breakpoint()'
+    E.g.,
+    -------------------------------------------------
+    import math
+
+    def circumference(r: float):
+      breakpoint()
+      return 2 * math.pi * r
+    -------------------------------------------------
+
+    Note: Before Python 3.7, replace breakpoint() with
+          import pdb; pdb.set_trace()
+
+  * Inside pdb debugging session (Pdb), you can show the pdb
+    commands using 'help pdb'.
+
+EOF
+}
