@@ -1,0 +1,139 @@
+#!/bin/bash
+
+COMMAND=$1
+
+# include summary section under $MYBINTOP/include
+MYBINTOP=$HOME/common/bin
+
+function usage() {
+cat << EOF
+    For information:
+    onetwork showconf              Show OS network interface configuration
+    onetwork showconf-exp          Show OS network interface configuration example
+    onetwork netman on|off         NetworkManager manages interface = on|off
+EOF
+}
+
+function print_topic() {
+    echo -e "\n# $@"
+}
+
+function run_cmd() {
+    COLOR='\033[0;36m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR\$ $@ $NCOLOR"
+    eval $@
+}
+
+function print_cmd() {
+    COLOR='\033[0;36m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR\$ $@ $NCOLOR"
+}
+
+function print_warn() {
+    COLOR='\033[0;31m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR $@ $NCOLOR"
+}
+
+function onetwork_showconf() {
+    if [ -f /etc/network/interfaces ]; then
+        run_cmd cat /etc/network/interfaces
+    else
+        print_cmd cat /etc/network/interfaces
+        print_topic "/etc/network/interfaces not found."
+    fi
+    if [ -f /etc/NetworkManager/NetworkManager.conf ]; then
+        run_cmd cat /etc/NetworkManager/NetworkManager.conf
+    else
+        print_topic "/etc/NetworkManager/NetworkManager.conf not found."
+    fi
+}
+
+function onetwork_showconf-exp() {
+cat << EOF
+
+By default, Network Manager in Debian system does not
+manage the interfaces defined under /etc/network/interfaces [1].
+
+To support auto network connection after platform reboot, please
+make sure /etc/NetworkManager/NetworkManager.conf has 'managed=true'.
+
+/etc/network/intefaces - basic example
+---------------------------------------------------
+# Loopback network interface
+auto lo
+iface lo inet loopback
+
+# Static IP
+auto eth0
+iface eth0 inet static
+    address 172.169.0.1
+    netmask 255.255.255.0
+
+# DHCP IP
+auto eth1
+iface eth1 inet dhcp
+
+allow-hotplug eth2
+iface eth2 inet dhcp
+---------------------------------------------------
+
+/etc/NetworkManager/NetworkManager.conf - basic example
+---------------------------------------------------
+[main]
+plugins=ifupdown,keyfile
+
+[ifupdown]
+managed=true
+---------------------------------------------------
+
+Reference:
+[1] https://wiki.debian.org/NetworkManager
+[2] https://wiki.debian.org/NetworkConfiguration#A.2Fetc.2Fnetwork.2Finterfaces
+EOF
+}
+
+function onetwork_netman() {
+    local OPTION=$1
+
+    if [ x"$OPTION" == x"on" ]; then
+        run_cmd sudo sed --in-place "s#managed=false#managed=true#" /etc/NetworkManager/NetworkManager.conf
+        run_cmd cat /etc/NetworkManager/NetworkManager.conf
+    fi
+    if [ x"$OPTION" == x"off" ]; then
+        run_cmd sudo sed --in-place "s#managed=true#managed=false#" /etc/NetworkManager/NetworkManager.conf
+        run_cmd cat /etc/NetworkManager/NetworkManager.conf
+    fi
+}
+
+if [ x"$COMMAND" == x"help" ] || [ x"$COMMAND" == x"" ]; then
+    usage
+    exit 0
+fi
+if [ x"$COMMAND" == x"showconf" ]; then
+    onetwork_showconf
+    exit 0
+fi
+if [ x"$COMMAND" == x"showconf-exp" ]; then
+    onetwork_showconf
+    exit 0
+fi
+if [ x"$COMMAND" == x"netman" ]; then
+    OPTION=$2
+    if [ x"$OPTION" == x"on" ] || [ x"$OPTION" == x"off" ]; then
+        onetwork_netman $OPTION
+    else
+        usage
+    fi
+    exit 0
+fi
+if [ x"$COMMAND" == x"file" ]; then
+    shift
+    SUBTOPIC=$1
+    show_dockerfile $SUBTOPIC
+    exit 0
+fi
+
+usage
