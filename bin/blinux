@@ -3,6 +3,8 @@
 COMMAND=$1
 MARCH=$2
 
+KCFGLIST=("linux-rt-yocto" "linux-rt-debian")
+
 function usage() {
 cat << EOF
     blinux COMMAND [march]
@@ -17,6 +19,9 @@ cat << EOF
         tools       Build kernel tools
         headers     Install Linux kernel headers
         clean       Clean Linux kernel build artifacts
+
+    blinux checkcfg [kconfig]  Check .config against <kconfig> baseline
+                    kconfig=[${KCFGLIST[@]}]
 
     blinux pw [SUBCMD] [ML] [SERIES]
         SUBCMD:
@@ -63,16 +68,25 @@ function print_warn() {
 function check_kconfig() {
     local KCONFIG1=$1
     local KCONFIG2=$2
+    local HAS_KCONFIG1=0
+    local HAS_KCONFIG2=0
 
-    HAS_KCONFIG1=$(grep "$KCONFIG1" -c .config)
-    HAS_KCONFIG2=$(grep "$KCONFIG2" -c .config)
+    if [ x"$KCONFIG1" != x"" ]; then
+        HAS_KCONFIG1=$(grep "$KCONFIG1" -c .config)
+    fi
+
+    if [ x"$KCONFIG2" != x"" ]; then
+        HAS_KCONFIG2=$(grep "$KCONFIG2" -c .config)
+    fi
 
     if [ $HAS_KCONFIG1 -eq 1 ]; then
          echo "DETECTED: $KCONFIG1"
     fi
+
     if [ $HAS_KCONFIG2 -eq 1 ]; then
         echo "DETECTED: $KCONFIG2"
     fi
+
     if [ $HAS_KCONFIG1 -eq 0 ] && [ $HAS_KCONFIG2 -eq 0 ]; then
         echo "!!! Please set $KCONFIG1 or $KCONFIG2"
         exit 1
@@ -80,26 +94,9 @@ function check_kconfig() {
 }
 
 function kconfig_dependency() {
-    # check_kconfig 'CONFIG_DEBUG_KMEMLEAK_TEST=m'
-    check_kconfig 'CONFIG_INITRAMFS_SOURCE="/home/sashimi/workspace/mender-cpio/mender-initramfs-ehl-2020.cpio.bz2"'
-    check_kconfig 'CONFIG_NET_PKTGEN=m' 'CONFIG_NET_PKTGEN=y'
-    # Make sure we have USB-Eth dongle support
-    check_kconfig 'CONFIG_USB_ETH=m' 'CONFIG_USB_ETH=y'
-    check_kconfig 'CONFIG_USB_NET_DRIVERS=m' 'CONFIG_USB_NET_DRIVERS=y'
-    check_kconfig 'CONFIG_USB_RTL8150=m' 'CONFIG_USB_RTL8150=y'
-    check_kconfig 'CONFIG_USB_RTL8152=m' 'CONFIG_USB_RTL8152=y'
-    check_kconfig 'CONFIG_USB_USBNET=m' 'CONFIG_USB_USBNET=y'
-    check_kconfig 'CONFIG_USB_NET_AX8817X=m' 'CONFIG_USB_NET_AX8817X=y'
-    check_kconfig 'CONFIG_USB_NET_AX88179_178A=m' 'CONFIG_USB_NET_AX88179_178A=y'
-    check_kconfig 'CONFIG_USB_NET_CDCETHER=m' 'CONFIG_USB_NET_CDCETHER=y'
-    # BPF settings
-    check_kconfig 'CONFIG_BPF=y'
-    check_kconfig 'CONFIG_BPF_JIT=y'
-    check_kconfig 'CONFIG_BPF_SYSCALL=y'
-    check_kconfig 'CONFIG_BPF_EVENTS=y'
-    check_kconfig 'CONFIG_DEBUG_INFO_BTF=y'
-    check_kconfig 'CONFIG_NET_CLS_BPF=m'
-    check_kconfig 'CONFIG_NET_ACT_BPF=m'
+    local KCFGFILE=$1
+
+    source $HOME/common/bin/kconfig/$KCFGFILE
 }
 
 #CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
@@ -240,8 +237,18 @@ if [ x"$COMMAND" == x"pw" ]; then
     exit 0
 fi
 
-# Make sure kernel config meets dev expectation
-kconfig_dependency
+if [ x"$COMMAND" == x"checkcfg" ]; then
+    KCFGFILE=$2
+    for i in ${!KCFGLIST[@]}; do
+        if [ x"$KCFGFILE" == x"${KCFGLIST[$i]}" ]; then
+            kconfig_dependency $KCFGFILE
+            exit 0
+        fi
+    done
+    usage
+    print_warn "ERROR: <kconfig> is incorrect"
+    exit 0
+fi
 
 if [ x"$COMMAND" == x"all" ]; then
     blinux_all
