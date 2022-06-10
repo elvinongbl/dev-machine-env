@@ -67,6 +67,7 @@ LINUX_REPOS=" \
     https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git \
     https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net.git \
     https://github.com/intel/linux-intel-lts.git \
+    git://git.kernel.org/pub/scm/devel/sparse/sparse.git \
 "
 
 YOCTO_REPOS=" \
