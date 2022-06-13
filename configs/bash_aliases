@@ -43,3 +43,6 @@ alias bb='bitbake'
 
 # Add helper scripts to PATH
 export PATH=$HOME/common/bin:$PATH
+
+# Add ccache PATH
+export PATH=/usr/lib/ccache:$PATH
