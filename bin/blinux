@@ -11,6 +11,7 @@ cat << EOF
     COMMAND:
         help        Show help message
         all         Build all
+        check       Check build with C=1 and W1
         modules     Build kernel modules
         tar         Build kernel tarxz-pkg
         deb         Build kernel debian-pkg
@@ -179,6 +180,12 @@ function blinux_sanity() {
     run_cmd cp .config_sanity_backup .config
 }
 
+function blinux_check() {
+    print_topic Check for build error, warn and sparse
+    run_cmd ARCH=$MARCH make -j32 W=1 C=1 2>build.warn
+    print_topic 'grep <keyword> build.warn after build complete'
+}
+
 function blinux_pw_apply_download() {
     local SUBCMD=$1
     local ML=$2
@@ -286,4 +293,9 @@ if [ x"$COMMAND" == x"clean" ]; then
     blinux_clean
     exit 0
 fi
+if [ x"$COMMAND" == x"check" ]; then
+    blinux_check
+    exit 0
+fi
+
 usage
