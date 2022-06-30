@@ -64,6 +64,7 @@ NETCONF_REPOS=" \
 
 LINUX_REPOS=" \
     https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git \
+    https://git.kernel.org/pub/scm/linux/kernel/git/rt/linux-rt-devel.git \
     https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git \
     https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net.git \
     https://github.com/intel/linux-intel-lts.git \
