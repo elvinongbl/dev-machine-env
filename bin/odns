@@ -1,0 +1,147 @@
+#!/bin/bash
+
+PROGNAM=$(basename $0)
+COMMAND=$1
+
+function usage() {
+cat << EOF
+    $PROGNAM COMMAND
+    COMMAND:
+        help                Show help message
+        resolve <dns>       Get IP address of Domain Name record
+        lookup <ip-addr>    Look-up Domain Name of IP addres
+        add <dns-server> <domains>   Add Domain Name Server
+                                     <dns-server>: IP address of DNS server
+                                     <domain>: E.g. png.xyz.com
+                                     Note: 8.8.8.8 is used as default backup DNS
+
+    Note: Default Ubuntu DNS resolution provided by systemd-resolved may not
+          automatically have the right DNS record. So, we may need to add a
+          valida DNS server.
+EOF
+}
+
+function print_topic() {
+    echo -e "\n# $@"
+}
+
+function print_separator_caution () {
+    COLOR='\033[0;31m'
+    NCOLOR='\033[0m'
+    echo -e "${COLOR}^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ${NCOLOR}"
+}
+
+function print_error() {
+    COLOR='\033[0;31m'
+    NCOLOR='\033[0m'
+    print_separator_caution
+    echo -e "${COLOR}!!ERROR: $@ ${NCOLOR}"
+    print_separator_caution
+}
+
+function run_cmd() {
+    COLOR='\033[0;36m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR\$ $@ $NCOLOR"
+    eval $@
+}
+
+function print_cmd() {
+    COLOR='\033[0;36m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR\$ $@ $NCOLOR"
+}
+
+function check_dig() {
+    which dig > /dev/null
+    if [ $? -eq 1 ]; then
+        print_error "dig is not available. Suggest: sudo apt install dnsutils"
+        exit
+    fi
+}
+
+function check_systemd_resolve() {
+    which systemd-resolve > /dev/null
+    if [ $? -eq 1 ]; then
+        print_error "systemd-resolve is not available."
+        exit
+    fi
+}
+
+function odns_resolve() {
+    local DNS=$1
+    check_dig
+
+    if [ x"$DNS" != x"" ]; then
+        run_cmd "dig $DNS"
+    else
+        usage
+    fi
+}
+
+function odns_lookup() {
+    local IPADDR=$1
+    check_dig
+
+    if [ x"$IPADDR" != x"" ]; then
+        run_cmd "dig -x $IPADDR"
+    else
+        usage
+    fi
+}
+
+function append_resolveconf() {
+    local DNSSERVER=$1
+    local BACKUPSERVER=$2
+    local DOMAINS=$3
+
+    result=$(grep "DNS=$DNSSERVER" /etc/systemd/resolved.conf -c)
+    if [ $result -gt 0 ]; then
+        return
+    fi
+
+sudo bash -c "cat << EOF >> /etc/systemd/resolved.conf
+DNS=$DNSSERVER
+FallbackDNS=$BACKUPSERVER
+Domains=$DOMAINS
+EOF"
+    run_cmd "cat /etc/systemd/resolved.conf"
+}
+
+function odns_addserver() {
+    local SERVERIPADDR=$1
+    local BACKUPDNS=8.8.8.8
+    local DOMAINS=$2
+
+    check_systemd_resolve
+
+    if [ x"$SERVERIPADDR" != x"" ] && [ x"$DOMAINS" != x"" ]; then
+        append_resolveconf $SERVERIPADDR $BACKUPDNS $DOMAINS
+        run_cmd "sudo service systemd-resolved restart"
+        run_cmd "systemd-resolve --status"
+    else
+        usage
+    fi
+}
+
+if [ x"$COMMAND" == x"help" ] || [ x"$COMMAND" == x"" ]; then
+    usage
+    exit 0
+fi
+if [ x"$COMMAND" == x"resolve" ]; then
+    odns_resolve $2
+    exit 0
+fi
+if [ x"$COMMAND" == x"lookup" ]; then
+    odns_lookup $2
+    exit 0
+fi
+if [ x"$COMMAND" == x"add" ]; then
+    odns_addserver $2 $3
+    exit 0
+fi
+
+usage
+
+# Good reference:-
+# https://linux.die.net/man/1/dig
