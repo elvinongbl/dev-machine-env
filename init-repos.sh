@@ -91,6 +91,7 @@ TRACING_REPOS=" \
     git://git.kernel.org/pub/scm/libs/libtrace/libtracefs.git \
     https://github.com/bristot/rtsl.git \
     https://git.kernel.org/pub/scm/utils/trace-cmd/trace-cmd.git \
+    https://github.com/nicolargo/glances.git \
 "
 
 function run_cmd() {
