@@ -199,7 +199,24 @@ cat << EOF
   ============
   $ pip install --user poetry
   OR
-  $ curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+  $ curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py -o install-poetry.py
+  $ python3 install-poetry.py
+
+  Note: The poetry installer installs the tool at $HOME/.poetry/bin which is automatically added to
+        $HOME/.profile.
+
+  $ Install poetry with its HOME location specified
+  $ POETRY_HOME=/etc/poetry python3 install-poetry.py
+
+  Uninstall
+  =========
+  $ python3 install-poetry.py --uninstall
+
+  Updating
+  ========
+  $ poetry self update
+  OR
+  $ poetry self update <version>
 
   Usage
   =====
@@ -215,13 +232,120 @@ cat << EOF
     $ cd <project>
     $ poetry shell
 
+  * To exit virtual environment
+    (virt-env) $ exit
+
   * To add new package to virtual environment
     $ poetry add <package name>
 
+  * To install package dependencies
+    $ poetry install
+
+    Note: Poetry resolves all software dependencies and after installations, lock
+          all these software dependencies into poetry.lock file (which should be
+          committed into your git repo)
+
+    Note: If there are poetry.lock and pyproject.toml in folder, poetry uses the
+          software versions locked in poetry.lock to install your environment.
+          So, it is possible that your version in pyproject.toml and poetry.lock
+          are different and the version in poetry.lock always take precendence.
+
   * To lock an environment (to avoid dependency issue)
     $ poetry lock
-    Note: this will create a verbose poetry.lock file (snapshot of dependency resolution
-          process.
+
+    Note: This will update a verbose poetry.lock file (snapshot of dependency
+          resolution process.
+
+  * To show current software project requirement dependency
+    $ poetry show --tree
+
+        pendulum 1.5.1 Python datetimes made easy.
+        ├── python-dateutil >=2.6.0.0,<3.0.0.0
+        │   └── six >=1.5
+        ├── pytzdata >=2018.3.0.0
+        └── tzlocal >=1.5.0.0,<2.0.0.0
+            └── pytz *
+        pytest 5.4.3 pytest: simple powerful testing with Python
+        ├── atomicwrites >=1.0
+        ├── attrs >=17.4.0
+        ├── colorama *
+        ├── more-itertools >=4.0.0
+        ├── packaging *
+        │   └── pyparsing >=2.0.2,<3.0.5 || >3.0.5
+        ├── pluggy >=0.12,<1.0
+        ├── py >=1.5.0
+        └── wcwidth *
+
+  * To show software requirement latest
+    $ poetry show --latest
+
+        attrs           21.4.0 21.4.0 Classes Without Boilerplate
+        more-itertools  8.13.0 8.13.0 More routines for operating on iterables, beyond itertools
+        packaging       21.3   21.3   Core utilities for Python packages
+        pendulum        1.5.1  2.1.2  Python datetimes made easy.
+        pluggy          0.13.1 1.0.0  plugin and hook calling mechanisms for python
+        py              1.11.0 1.11.0 library with cross-python path, ini-parsing, io, code, log facilities
+        pyparsing       3.0.9  3.0.9  pyparsing module - Classes and methods to define and execute parsing grammars
+        pytest          5.4.3  7.1.2  pytest: simple powerful testing with Python
+        python-dateutil 2.8.2  2.8.2  Extensions to the standard Python datetime module
+        pytz            2022.1 2022.1 World timezone definitions, modern and historical
+        pytzdata        2020.1 2020.1 The Olson timezone database for Python.
+        six             1.16.0 1.16.0 Python 2 and 3 compatibility utilities
+        tzlocal         1.5.1  4.2    tzinfo object for the local timezone
+        wcwidth         0.2.5  0.2.5  Measures the displayed width of unicode strings in a terminal
+
+  * To build and package your software
+    $ poetry build
+
+  * To publish your software to PyPI
+    $ poetry publish
+
+  Demo usage
+  ==========
+  1) Create a new project
+    $ poetry new poetry-demo
+
+      poetry-demo
+      ├── pyproject.toml
+      ├── README.rst
+      ├── poetry_demo
+      │   └── __init__.py
+      └── tests
+          ├── __init__.py
+          └── test_poetry_demo.py
+
+  2) pyproject.toml - used to orchestrate and organize your dependencies
+        [tool.poetry]
+        name = "poetry-demo"
+        version = "0.1.0"
+        description = ""
+        authors = ["Ong Boon Leong <boon.leong.ong@intel.com>"]
+
+        [tool.poetry.dependencies]
+        python = "^3.9"
+
+        [tool.poetry.dev-dependencies]
+        pytest = "^5.2"
+
+        [build-system]
+        requires = ["poetry-core>=1.0.0"]
+        build-backend = "poetry.core.masonry.api"
+
+  3) To add software dependencies (say pendulum) to software project, you can either use:-
+     $ poetry add pendulum
+     OR
+     Add "pendulum" software dependencies is added in [tool.poetry.dependencies]
+        [tool.poetry.dependencies]
+        python = "^3.9"
+        pendulum = "^1.4"
+
+      Note: pendulum: replacement for "datetime" Python class.
+            https://pendulum.eustace.io
+
+  4) To run a script under poetry:-
+     $ poetry run python3 <your_script.py>
+     OR
+     $ poetry run <python command>
 
   Reference
   =========
