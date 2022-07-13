@@ -73,7 +73,7 @@ function odns_resolve() {
     check_dig
 
     if [ x"$DNS" != x"" ]; then
-        run_cmd "dig $DNS"
+        run_cmd "dig $DNS +short"
     else
         usage
     fi
