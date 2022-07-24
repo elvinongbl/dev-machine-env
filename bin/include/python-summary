@@ -448,3 +448,56 @@ cat << EOF
 
 EOF
 }
+
+function summary_python_xml() {
+cat << EOF
+
+  Summary of Python XML Processing
+  ================================
+
+  A) DOM (Document Object Model) API:
+
+    * Web browser exposes DOM (Document Object Model) interface through
+      Java Script for HTML, XML manipulation.
+
+    * DOM defines operations for traversing and modifying doc elements
+      in hierarchy of objects (doc tree) which is stored in memory for
+      random access (omni-directional navigation).
+
+    * As DOM renders entire doc tree ad once (memory consuming), it is
+      only suitable for moderately large configuration files.
+
+  B) SAX (Simple API for XML):
+
+    * Event-based streaming API that operates sequentially on individual
+      elements instead of whole doc tree.
+
+    * Elements are processed from top to bottom and as specific XML nodes
+      is found, user-defined callbacks are triggered by the SAX parser.
+
+    * Elements may be discarded if there is no interest in processing.
+      This means memory footprint is lower than DOM. It works well for
+      parsing very large doc.
+
+    * SAX parsing is good for single-pass, read-only processing such as
+      indexing, conversion to other formats.
+
+    * SAX is NOT suitable for random tree nodes, multi-pass parsing,
+      deeply nested elements and etc.
+
+  C) StAX (Streaming API for XML)
+
+    * SAX is push model where interested element is pushed to app through
+      event-based callback. StAX is built on top of SAX and uses streaming
+      for pull parsing model.
+
+    * StAX acts as iteractor advancing cursor over XML object across entire
+      XML doc where custom handlers call the parser on demand. The events in
+      the stream is only consumed when requested (lazy evaluation).
+
+  * It is possible to combine more than one XML parsing model. Use SAX or StAX
+    for quick parsing and build DOM representation on particular doc branch in
+    memory.
+
+EOF
+}
