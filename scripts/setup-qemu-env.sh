@@ -1,5 +1,44 @@
 #!/bin/bash
 
+# For debian system:-
+#
+# Build Linux kernel with cgroup, namespace, KVM, VHOST and virtualization support
+#
+# CONFIG_HAVE_KVM=y
+# CONFIG_HAVE_KVM_PFNCACHE=y
+# CONFIG_HAVE_KVM_IRQCHIP=y
+# CONFIG_HAVE_KVM_IRQFD=y
+# CONFIG_HAVE_KVM_IRQ_ROUTING=y
+# CONFIG_HAVE_KVM_DIRTY_RING=y
+# CONFIG_HAVE_KVM_EVENTFD=y
+# CONFIG_KVM_MMIO=y
+# CONFIG_KVM_ASYNC_PF=y
+# CONFIG_HAVE_KVM_MSI=y
+# CONFIG_HAVE_KVM_CPU_RELAX_INTERCEPT=y
+# CONFIG_KVM_VFIO=y
+# CONFIG_KVM_GENERIC_DIRTYLOG_READ_PROTECT=y
+# CONFIG_HAVE_KVM_IRQ_BYPASS=y
+# CONFIG_HAVE_KVM_NO_POLL=y
+# CONFIG_KVM_XFER_TO_GUEST_WORK=y
+# CONFIG_HAVE_KVM_PM_NOTIFIER=y
+# CONFIG_KVM=y
+# CONFIG_KVM_WERROR=y
+# CONFIG_KVM_INTEL=y
+#
+# CONFIG_VHOST_IOTLB=y
+# CONFIG_VHOST=y
+# CONFIG_VHOST_MENU=y
+# CONFIG_VHOST_NET=y
+# CONFIG_VHOST_CROSS_ENDIAN_LEGACY=y
+#
+# 1/ vi /etc/default/grub, add intel_iommu=on
+# 2/ sudo update-grub2
+# 3/ sudo reboot
+#
+# 1/ sudo apt install qemu-utils virt-manager cgroup-tools cgroupfs-mount
+# 2/ sudo cgroupfs-mount
+# 3/ sudo virt-host-validate
+
 function print_topic() {
     echo -e "\n# $@"
 }
@@ -45,4 +84,3 @@ function check_virt_readiness() {
 }
 
 check_virt_readiness
-
