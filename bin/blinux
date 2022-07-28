@@ -1,20 +1,21 @@
 #!/bin/bash
 
 COMMAND=$1
-MARCH=$2
+OUTDIR=$2
+MARCH=$3
 
 KCFGLIST=("linux-rt-yocto" "linux-rt-debian")
 
 function usage() {
 cat << EOF
-    blinux COMMAND [march]
+    blinux COMMAND [outdir] [march]
     COMMAND:
         help        Show help message
         all         Build all
         check       Check build with C=1 and W1
         modules     Build kernel modules
         tar         Build kernel tarxz-pkg
-        deb         Build kernel debian-pkg
+        deb         Build kernel debian binary pkg
         rpm         Build kernel rpm-pkg
         bpf         Build samples/bpf
         tools       Build kernel tools
@@ -109,27 +110,27 @@ function kconfig_dependency() {
 
 function blinux_all() {
     print_topic Build all
-    run_cmd ARCH=$MARCH make -j32
+    run_cmd ARCH=$MARCH make -j32 O=$OUTDIR
 }
 
 function blinux_modules() {
     print_topic Build kernel modules
-    run_cmd ARCH=$MARCH make -j32 W=1 modules
+    run_cmd ARCH=$MARCH make -j32 W=1 O=$OUTDIR modules
 }
 
 function blinux_tar() {
     print_topic Build kernel tarxz-pkg
-    run_cmd ARCH=$MARCH make -j32 tarxz-pkg
+    run_cmd ARCH=$MARCH make -j32 O=$OUTDIR tarxz-pkg
 }
 
 function blinux_deb() {
-    print_topic Build kernel deb-pkg
-    run_cmd ARCH=$MARCH make -j32 deb-pkg
+    print_topic Build kernel binary deb-pkg
+    run_cmd ARCH=$MARCH make -j32 O=$OUTDIR bindeb-pkg
 }
 
 function blinux_rpm() {
     print_topic Build kernel tarxz-pkg
-    run_cmd ARCH=$MARCH make -j32 rpm-pkg
+    run_cmd ARCH=$MARCH make -j32 O=$OUTDIR rpm-pkg
 }
 
 function blinux_bpf() {
@@ -139,27 +140,27 @@ function blinux_bpf() {
     # #include <sys/capability.h>
     # sudo apt-get install libcap-dev
     print_topic Build samples/bpf
-    ARCH=$MARCH make M=samples/bpf
+    ARCH=$MARCH make M=samples/bpf O=$OUTDIR
 }
 
 function blinux_headers() {
     print_topic Install kernel headers
-    run_cmd ARCH=$MARCH make headers_install
+    run_cmd ARCH=$MARCH make headers_install O=$OUTDIR
 }
 
 function blinux_clean() {
     print_topic Clean kernel build artifact
-    run_cmd ARCH=$MARCH make -j32 -C tools clean
-    run_cmd ARCH=$MARCH make -j32 -C samples/bpf clean
-    run_cmd ARCH=$MARCH make -j32 clean
+    run_cmd ARCH=$MARCH make -j32 O=$OUTDIR -C tools clean
+    run_cmd ARCH=$MARCH make -j32 O=$OUTDIR -C samples/bpf clean
+    run_cmd ARCH=$MARCH make -j32 O=$OUTDIR clean
 }
 
 function blinux_tools() {
     #Builds tools folder
     # software dependency: sudo apt install libpci-dev libpopt-dev
     # To check on what other smaller option, goto Linux directory, run "ARCH=x86 make -C tools"
-    ARCH=x86 make tools/all
-    ARCH=x86 make tools/install
+    ARCH=x86 make O=$OUTDIR tools/all
+    ARCH=x86 make O=$OUTDIR tools/install
 }
 
 function blinux_sanity() {
@@ -167,12 +168,12 @@ function blinux_sanity() {
 
     run_cmd cp .config .config_sanity_backup
 
-    run_cmd ARCH=$MARCH make -j32 allmodconfig
+    run_cmd ARCH=$MARCH make -j32 O=$OUTDIR allmodconfig
 
-    run_cmd ARCH=$MARCH make -j32 allyesconfig
+    run_cmd ARCH=$MARCH make -j32 O=$OUTDIR allyesconfig
 
     run_cmd rm -rf nohup.out
-    run_cmd ARCH=$MARCH nohup make -j32 W=1 C=2
+    run_cmd ARCH=$MARCH nohup make -j32 O=$OUTDIR W=1 C=2
 
     print_cmd '# Manual step to check for issue ...'
     print_cmd 'cat nohup.out | grep "stmmac\|pcs"'
@@ -182,7 +183,7 @@ function blinux_sanity() {
 
 function blinux_check() {
     print_topic Check for build error, warn and sparse
-    run_cmd ARCH=$MARCH make -j32 W=1 C=1 2>build.warn
+    run_cmd ARCH=$MARCH make -j32 W=1 C=1 O=$OUTDIR 2>build.warn
     print_topic 'grep <keyword> build.warn after build complete'
 }
 
@@ -222,6 +223,10 @@ fi
 
 if [ x"$MARCH" == x"" ]; then
     MARCH=x86
+fi
+
+if [ x"$OUTDIR" == x"" ]; then
+    OUTDIR=.
 fi
 
 if [ x"$COMMAND" == x"pw" ]; then
