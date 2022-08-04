@@ -36,7 +36,11 @@ PUBLIC_REPOS=" \
     https://github.com/the-tcpdump-group/libpcap \
     https://github.com/getpatchwork/git-pw \
     git://git.kernel.org/pub/scm/utils/rt-tests/rt-tests.git \
-    git clone git://github.com/acpica/acpica.git \
+    git://github.com/acpica/acpica.git \
+"
+
+NETWORKING_REPOS=" \
+   https://gitlab.com/etherlab.org/ethercat.git \
 "
 
 BPFXDP_REPOS=" \
@@ -136,3 +140,4 @@ git_clone_repos ~/public-repos/oss-netconf $NETCONF_REPOS
 git_clone_repos ~/public-repos/oss-learning $LEARNING_REPOS
 git_clone_repos ~/public-repos/oss-virtualization $VT_REPOS
 git_clone_repos ~/public-repos/oss-tracing $TRACING_REPOS
+git_clone_repos ~/public-repos/oss-networking $NETWORKING_REPOS
