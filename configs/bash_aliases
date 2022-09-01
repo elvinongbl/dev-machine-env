@@ -47,5 +47,8 @@ export PATH=$HOME/common/bin:$PATH
 # Add ccache PATH
 export PATH=/usr/lib/ccache:$PATH
 
+# Add Python pip PATH
+export PATH=$HOME/.local/bin:$PATH
+
 # Add current directory to PATH
 alias setpath="export PATH=$(pwd):$PATH"
