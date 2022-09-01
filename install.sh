@@ -250,9 +250,10 @@ function install_helper_scripts() {
 # https://github.com/microsoft/Git-Credential-Manager-Core/releases
 function install_git_credential_manager_latest() {
     print_topic "Install git credential manager (gcm) for all future github access"
-    latest="https://github.com/microsoft/Git-Credential-Manager-Core/releases/download/v2.0.498/gcmcore-linux_amd64.2.0.498.54650.deb"
-    latest_dpkg="gcmcore-linux_amd64.2.0.498.54650.deb"
+    latest="https://github.com/GitCredentialManager/git-credential-manager/releases/download/v2.0.785/gcm-linux_amd64.2.0.785.deb"
+    latest_dpkg="gcm-linux_amd64.2.0.785.deb"
     run_cmd wget $latest
+    run_cmd sudo apt install libssl-dev
     run_cmd sudo dpkg -i $latest_dpkg
     run_cmd git config --global credential.credentialStore plaintext
     run_cmd git-credential-manager-core configure
@@ -264,7 +265,7 @@ function setup_fuse_conf() {
     # To enable guestmount to mount virtual disk as root and access by
     # other user.
     print_topic "Make /etc/fuse.conf to allow other user"
-    run_cmd sudo sed -i "s|#user_allow_other|user_allow_other|g" /etc/fuse.conf
+    sudo sed -i "s|#user_allow_other|user_allow_other|g" /etc/fuse.conf
 }
 
 function setup_python_virtualenv() {
@@ -303,11 +304,11 @@ if [ x"$CHOICE" == x"all" ]; then
     setup_vncserver
     install_git_credential_manager_latest
     setup_fuse_conf
-    setup_python_virtualenv
 
     print_banner "Machine environment setup: COMPLETE."
     print_topic "Now, you may source ~/.bashrc to refresh"
     print_topic "Next, you may generate ssh key-pair: ssh-keygen -t ed25519 -C \"someone@gmail.com\" "
+    print_topic "After source ~/.bashrc, run ./install.sh python"
 fi
 
 if [ x"$CHOICE" == x"mycmd" ]; then
