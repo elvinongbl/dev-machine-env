@@ -42,13 +42,30 @@ alias cc='clear'
 alias bb='bitbake'
 
 # Add helper scripts to PATH
-export PATH=$HOME/common/bin:$PATH
+unset MYPATH
+export MYPATH=$HOME/common/bin
 
 # Add ccache PATH
-export PATH=/usr/lib/ccache:$PATH
+export MYPATH=/usr/lib/ccache:$MYPATH
 
-# Add Python pip PATH
-export PATH=$HOME/.local/bin:$PATH
+# Add pyenv PATH
+#export MYPATH=$HOME/.pyenv/plugins/pyenv-virtualenv/shims:$HOME/.pyenv/shims:$MYPATH
+export MYPATH=$HOME/.pyenv/bin:$MYPATH
+
+export SYSPATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin
+
+# Consolidate MYPATH into PATH
+export PATH=$MYPATH:$SYSPATH
 
 # Add current directory to PATH
-alias setpath="export PATH=$(pwd):$PATH"
+function setpath() {
+    export PATH=$(pwd):$PATH
+}
+
+# Load pyenv automatically by appending
+export PYENV_ROOT="$HOME/.pyenv"
+command -v pyenv >/dev/null
+eval "$(pyenv init -)"
+
+# Load pyenv-virtualenv automatically by adding
+eval "$(pyenv virtualenv-init -)"
