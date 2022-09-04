@@ -6,7 +6,7 @@ COMMAND=$1
 MYBINTOP=$HOME/common/bin
 MYPYTHONVIRTENV=$HOME/workspace/python-virtenvs
 source $MYBINTOP/include/python-summary
-TOPICLIST=("virtualenv" "pip" "doc" "poetry" "ipython" "debugging" "xml")
+TOPICLIST=("virtualenv" "pip" "doc" "poetry" "ipython" "debugging" "xml" "pyenv")
 
 function usage() {
 cat << EOF

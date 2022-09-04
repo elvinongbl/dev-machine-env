@@ -501,3 +501,54 @@ cat << EOF
 
 EOF
 }
+
+function summary_python_pyenv() {
+cat << EOF
+  pyenv             - manages multiple version of Python installation
+  virtualenv/venv   - manages virtual environments for a specific Python version
+  pyenv-virtualenv  - manages virtual environments for across different Python versions.
+
+  $ pyenv commands              - Show all available commands
+  $ pyenv <cmd> --help          - Show detailed of <cmd>
+  $ pyenv install <version>     - Install Python version
+  $ pyenv install --list        - Show available Python version
+  $ pyenv versions              - Show all installed Python version
+  $ pyenv version               - Show currently used Python version
+  $ pyenv which <cmd>           - Show full path of <cmd>
+  $ pyenv global <ver>          - Set the Python global version
+  $ pyenv local <ver>           - Set an application specific Python version
+                                  It puts .python-version in your current
+                                  application directory
+  $ pyenv shell <ver>           - Set a shell-specific Python version.
+                                  It sets environment variable PYENV_VERSION.
+                                  It overwrites setting by:-
+                                  a) .python-version file
+                                  b) \$HOME/.pyenv/version
+                                  c) System Python
+
+  pyenv-virtualenv  - manages virtual environments for across different Python versions.
+
+  The steps for creating a virtual environment specific on a specific Python version:
+  1) $ pyenv virtualenv <python-version> <environment-name>  
+     Note: Normally environment name is the same as project name
+           It also installs couple of Python packages e.g. pip, wheel, setuptools
+
+  2) $ pyenv local <environment-name>
+     Note: This creates .python-version and the environment is automatically
+           activated, because 'eval $(pyenv vrtualenv-init -)' in the .bash_aliases
+
+  3) If you want to add another Python version to the same environment where-by
+     <environment-name> take precendence over <another-python-version>
+     $ pyenv local <environment-name> <another-python-version>
+
+  3) $ pyenv which python 
+     $ pyenv which pip
+     Note: To check the Python version that is in-use now.
+
+  4) $ pyenv activate <environment-name> or pyenv deactivate
+     Note: This is done automatically when it enters or exits a directory
+
+  [1] https://realpython.com/intro-to-pyenv/#virtual-environments-and-pyenv
+EOF
+}
+
