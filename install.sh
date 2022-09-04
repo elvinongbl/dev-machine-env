@@ -66,9 +66,9 @@ PKGLIST_DEVTOOL=" \
  bc bison build-essential cpio chrpath \
  dblatex debianutils diffstat docbook-utils \
  exuberant-ctags flex fop gawk git git-email tig \
- gcc-multilib iputils-ping \
+ gcc-multilib iputils-ping rust-all \
  libegl1-mesa libsdl1.2-dev libncurses5-dev libssl-dev libelf-dev \
- python3 python3-pip python3-pexpect python3-git python3-jinja2 pylint3 \
+ python3 python3-pip python3-pexpect python3-git python3-jinja2 pylint \
  texinfo unzip \
  wget xterm xz-utils xsltproc xmlto \
  cmake p7zip-full p7zip-rar \
