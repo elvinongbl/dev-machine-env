@@ -208,31 +208,6 @@ function setup_misc(){
     run_cmd mkdir -p $HOME/workspace/mender-cpio
 }
 
-######################################
-# Setup vncserver environment
-######################################
-function setup_vncserver() {
-    print_banner "Setup vncserver"
-    run_cmd mv $HOME/.vnc/xstartup  $HOME/.vnc/xstartup.bak
-    run_cmd sudo cp ./configs/vncserver@.service  /etc/systemd/system/
-    print_topic "Reload vncsever systemd unit"
-    run_cmd sudo systemctl daemon-reload
-    run_cmd sudo systemctl enable vncserver@1.service
-    run_cmd sudo systemctl start vncserver@1
-
-    ## Start vncserver manually to enter password
-    print_topic "Start vncserver to create password"
-    run_cmd vncserver
-    run_cmd vncserver -kill :1
-
-    ## Finally, on the client machine create a ssh pipe to vncserver
-    # ssh -L 5901:127.0.0.1:5901 -C -N -l bong5 elvinlatte.local
-    # For MAC, open safari, use vnc://localhost:5901
-}
-
-######################################
-# Setup vncserver environment
-######################################
 function install_helper_scripts() {
     print_banner "Install helper scripts"
     run_cmd mkdir -p $HOME/common/bin/include
@@ -301,7 +276,7 @@ if [ x"$CHOICE" == x"all" ]; then
     install_packages
     setup_misc
     install_helper_scripts
-    setup_vncserver
+
     install_git_credential_manager_latest
     setup_fuse_conf
 
@@ -333,7 +308,7 @@ fi
 if [ x"$CHOICE" == x"myenv" ]; then
     print_banner "Install: myenv (Development environment)"
     setup_misc
-    setup_vncserver
+
     install_git_credential_manager_latest
     setup_fuse_conf
 
