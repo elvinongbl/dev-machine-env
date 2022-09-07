@@ -499,6 +499,41 @@ cat << EOF
     for quick parsing and build DOM representation on particular doc branch in
     memory.
 
+  * Python standard library defines abstract interfaces for parsing XML doc
+    which by default bundles a binding for a C-based XML parsing library
+    called Expat (https://github.com/libexpat/libexpat)
+
+  Detail of Minimal DOM implementation
+  ------------------------------------
+  1) xml.dom package has two modules:
+     a) xml.dom.minidom
+        - stripped down implementation of DOM interface on relatively old version
+          of W3C spec with poor documentation and limited usefulness.
+        - provides DOM API such as Document, Element, Attr.
+
+    b) xml.dom.pulldom
+        - defines streaming pull parser that optionally produce DOM representation
+          of the current node in the doc tree.
+
+  2) Unless an XML element is marked specifically in the Doc Type, by default
+     XML element is not searchable using ID
+     <!--ATTLIST linearGradient id ID #IMPLIED-->
+
+  3) So, we need to mark XML ID recursively using .setIdAttribute():-
+
+    from xml.dom.minidom import parse, Node
+
+    def set_id_attribute(parent, attribute_name="id"):
+        if parent.nodeType == Node.ELEMENT_NODE:
+            if parent.hasAttribute(attribute_name):
+                parent.setIdAttribute(attribute_name)
+        for child in parent.childNodes:
+            set_id_attribute(child, attribute_name)
+
+    document = parse("doc.svg")
+    set_id_attribute(document)
+    document.getElementById("skin")
+
 EOF
 }
 
@@ -529,7 +564,7 @@ cat << EOF
   pyenv-virtualenv  - manages virtual environments for across different Python versions.
 
   The steps for creating a virtual environment specific on a specific Python version:
-  1) $ pyenv virtualenv <python-version> <environment-name>  
+  1) $ pyenv virtualenv <python-version> <environment-name>
      Note: Normally environment name is the same as project name
            It also installs couple of Python packages e.g. pip, wheel, setuptools
 
@@ -541,7 +576,7 @@ cat << EOF
      <environment-name> take precendence over <another-python-version>
      $ pyenv local <environment-name> <another-python-version>
 
-  3) $ pyenv which python 
+  3) $ pyenv which python
      $ pyenv which pip
      Note: To check the Python version that is in-use now.
 
@@ -552,3 +587,98 @@ cat << EOF
 EOF
 }
 
+function summary_python_devel() {
+cat << EOF
+
+  Python module & package
+  =======================
+  * Python module that contains Python code and has namespace
+    containing arbitrary Python objects (class, members & function).
+    Module is loaded into Python interpreter by 'import', e.g.
+
+    import math
+    import math as m
+    from math import pi
+    from math import as PI
+
+    Normally, Python module corresponds to one or more .py file
+    containing Python code.
+
+  * A Python package is Python module which contains submodules or
+    recursively subpackages. Python package normally corresponds to
+    a directory and optionally a '__init__.py' file inside it.
+    - __init__.py defines which submodule and subpackage to be imported
+      when higher level Python package is imported.
+    - if __init__.py does not exist, Python package is treated as
+      namespace packages.
+
+  * Python looks for module and package in its following order of
+    import path:-
+    - current directory
+    - content of PYTHONPATH
+    - installation directories
+
+    Note: to prevent module namespace conflict, top-level module
+          and package should be unique.
+
+  * car/
+    |--- __init__.py
+    |    {
+    |      from . import door
+    |      from . import dashboard
+    |      from . import chasis
+    |    }
+    |
+    |--- chasis.py
+    |
+    |--- door/
+    |     |---- __init__.py
+    |     |     {
+    |     |       from . import window
+    |     |       from . import door-handle
+    |     |     }
+    |     |---- window.py
+    |     |---- door-handle.py
+    |
+    |--- dashboard/
+          |--- __init__.py
+          |    {
+          |      from . import speedometer
+          |      from . import fuel
+          |    }
+          |--- speedometer.py
+          |--- fuel.py
+
+    Note: The '.' refers current package.
+          To import specific module inside a Python package:
+
+              import car.door.window
+              import car.dashboard.speedometer
+
+          Above import assumes that car package is installed.
+
+  * To install a Python package, it needs both setup.cfg and
+    setup.py for pip install.
+
+    For example:-
+    setup.cfg
+    ---------
+    [metadata]
+    name = <package name>
+    version = 0.1.0
+
+    [options]
+    packages = <directory>
+
+    setup.py
+    --------
+    import setuptools
+    setuptools.setup()
+
+    Then, we install the Python package as editable from
+    the same level where setup.cfg presents
+
+    python3 -m pip install -e .
+
+EOF
+}
