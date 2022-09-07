@@ -16,7 +16,7 @@ cat << EOF
   $ ./${PROGNAME} <COMMAND>
       COMMAND:
         show:                   Show current CPython installed by pyenv
-        prepare:                Pre-install software dependency
+        prepare <os>:           Pre-install software dependency. Default os=linux
         install <version>:      Build and install Python version using pyenv
         uninstall <version>:    Uninstall Python version using pyenv
         switch <version>:       Switch to a desired Python version
@@ -48,8 +48,8 @@ function print_cmd() {
     echo -e "$COLOR\$ $@ $NCOLOR"
 }
 
-function prepare_env() {
-    print_topic "Install build software dependencies ..."
+function prepare_env_linux() {
+    print_topic "Install build software dependencies (linux) ..."
     run_cmd sudo apt-get update -y
     run_cmd sudo apt-get build-dep -y python3
     run_cmd sudo apt-get install -y build-essential gdb lcov pkg-config \
@@ -59,6 +59,21 @@ function prepare_env() {
     print_topic "Get and execute pyenv installer ..."
     run_cmd 'curl https://pyenv.run | bash'
     print_topic "Note: steps to add pyenv to system has been added through ~/.bash_aliases"
+}
+
+function prepare_env_mac() {
+    print_topic "Install build software dependencies (MAC) ..."
+    run_cmd brew install openssl readline sqlite3 xz zlib
+    run_cmd 'curl https://pyenv.run | bash'
+    cat << EOF
+Note: Add the following steps to ~/.profile:-
+
+export PATH="\$HOME/.pyenv/bin:\$PATH"
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
+
+Then, restart the terminal
+EOF
 }
 
 function install_python() {
@@ -103,8 +118,13 @@ if [ x"$COMMAND" == x"show" ]; then
 fi
 
 if [ x"$COMMAND" == x"prepare" ]; then
+    OS=$2
+    [ -z $OS ] && print_topic "OS not set. Default to linux" && OS=linux
     print_topic "Requirement /etc/apt/sources.list:- deb-src http://archive.ubuntu.com/ubuntu/ jammy main or equivalent"
-    prepare_env
+
+    [ x"$OS" == x"linux" ] && prepare_env_linux
+    [ x"$OS" == x"mac" ] && prepare_env_mac
+
     exit
 fi
 
