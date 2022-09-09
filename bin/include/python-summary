@@ -583,6 +583,28 @@ cat << EOF
   4) $ pyenv activate <environment-name> or pyenv deactivate
      Note: This is done automatically when it enters or exits a directory
 
+  Using pip inside pyenv
+  ----------------------
+  1) Select the Python version that you want to set globally or locally
+     $ pyenv global <version>
+     OR
+     $ pyenv local <version> under a specific working directory
+
+  2) Use pip as usual
+     * Check that pip version is tied to the pyenv managed python version
+       $ pip --version
+
+     * List the installed package
+       $ pip list
+
+     * Install/Uninstall new Python package
+       $ pip install/uninstall <package>
+
+     * Show pip supported command
+       $ pip --help
+
+  3) Search for Python packages in https://pypi.org
+
   [1] https://realpython.com/intro-to-pyenv/#virtual-environments-and-pyenv
 EOF
 }
