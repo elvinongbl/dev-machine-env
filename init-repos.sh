@@ -98,6 +98,11 @@ TRACING_REPOS=" \
     https://github.com/nicolargo/glances.git \
 "
 
+CLOUDNATIVE_REPOS=" \
+    https://github.com/CloudNativeDataPlane/cndp.git \
+    https://github.com/ipdk-io/ipdk.git \
+"
+
 function run_cmd() {
     COLOR='\033[0;36m'
     NCOLOR='\033[0m'
@@ -141,3 +146,4 @@ git_clone_repos ~/public-repos/oss-learning $LEARNING_REPOS
 git_clone_repos ~/public-repos/oss-virtualization $VT_REPOS
 git_clone_repos ~/public-repos/oss-tracing $TRACING_REPOS
 git_clone_repos ~/public-repos/oss-networking $NETWORKING_REPOS
+git_clone_repos ~/public-repos/oss-cloudnative $CLOUDNATIVE_REPOS
