@@ -1,0 +1,66 @@
+#!/bin/bash
+
+CHOICE=$1
+
+function usage() {
+cat << EOF
+    operf COMMAND
+    COMMAND:
+        help                 Show help message
+        summary <cmd>        Show summary of running a cmd
+EOF
+}
+
+function print_topic() {
+    NCOLOR='\033[0m'
+    echo -e "\n${NCOLOR}# $@ ${NCOLOR}"
+}
+
+function print_line() {
+    NCOLOR='\033[0m'
+    echo -e "${NCOLOR}==========================================${NCOLOR}"
+}
+
+function run_cmd() {
+    COLOR='\033[0;36m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR\$ $@ $NCOLOR"
+    eval $@
+}
+
+function print_cmd() {
+    COLOR='\033[0;36m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR\$ $@ $NCOLOR"
+}
+
+function print_warn() {
+    COLOR='\033[0;31m'
+    NCOLOR='\033[0m'
+    echo -e "$COLOR $@ $NCOLOR"
+}
+
+function operf_summary() {
+    local command=$@
+    run_cmd strace -c $command
+}
+
+if [ $# -eq 0 ]; then
+    echo -e "Invalid input or usage"
+    usage
+    exit
+fi
+
+if [ x"$CHOICE" == x"summary" ]; then
+    shift 1
+    command=$@
+    operf_summary $command
+    exit
+fi
+
+if [ x"$CHOICE" == x"help" ]; then
+    usage
+    exit
+fi
+
+usage
