@@ -32,6 +32,7 @@ alias cdpub="cd ~/public-repos"
 alias cdincu='cd ~/incu-repos'
 alias cdlinux='cd ~/public-repos/oss-linux/linux'
 alias cdenv="cd ~/own-repos/dev-machine-env"
+alias cdsb="cd ~/sandbox-repos/bong5"
 
 # General command line editting
 alias vv='vim.nox'
