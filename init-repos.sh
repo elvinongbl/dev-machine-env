@@ -151,5 +151,5 @@ git_clone_repos ~/public-repos/oss-virtualization $VT_REPOS
 git_clone_repos ~/public-repos/oss-tracing $TRACING_REPOS
 git_clone_repos ~/public-repos/oss-networking $NETWORKING_REPOS
 git_clone_repos ~/public-repos/oss-cloudnative $CLOUDNATIVE_REPOS
-git_clone_repos ~/sandbox-repos/bong5 $SANDBOX_REPOS
+git_clone_repos ~/sandbox-repos $SANDBOX_REPOS
 
