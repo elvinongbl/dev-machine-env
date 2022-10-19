@@ -211,7 +211,9 @@ function setup_misc(){
 
 function install_helper_scripts() {
     print_banner "Install helper scripts"
+    run_cmd rm -rf $HOME/common/bin
     run_cmd mkdir -p $HOME/common/bin/include
+    run_cmd mkdir -p $HOME/common/bin/kconfig
     run_cmd cp -r ./bin    $HOME/common/
 }
 
