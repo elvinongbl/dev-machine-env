@@ -4,7 +4,7 @@ COMMAND=$1
 OUTDIR=$2
 MARCH=$3
 
-KCFGLIST=("linux-rt-yocto" "linux-rt-debian")
+KCFGLIST=($(find $HOME/common/bin/kconfig/ -name "linux-*" -printf "%P "))
 
 function usage() {
 cat << EOF
@@ -23,7 +23,7 @@ cat << EOF
         clean       Clean Linux kernel build artifacts
 
     blinux checkcfg [kconfig]  Check .config against <kconfig> baseline
-                    kconfig=[${KCFGLIST[@]}]
+                    kconfig=[ ${KCFGLIST[@]} ]
 
     blinux pw [SUBCMD] [ML] [SERIES]
         SUBCMD:
