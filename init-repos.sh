@@ -82,12 +82,12 @@ YOCTO_REPOS=" \
 "
 
 LEARNING_REPOS=" \
-    https://github.com/bpftools/linux-observability-with-bpf.git
+    https://github.com/bpftools/linux-observability-with-bpf.git \
 "
 
 VT_REPOS=" \
-    https://github.com/libvirt/libvirt.git
-    https://github.com/qemu/qemu.git
+    https://github.com/libvirt/libvirt.git \
+    https://github.com/qemu/qemu.git \
 "
 
 TRACING_REPOS=" \
@@ -96,6 +96,7 @@ TRACING_REPOS=" \
     https://github.com/bristot/rtsl.git \
     https://git.kernel.org/pub/scm/utils/trace-cmd/trace-cmd.git \
     https://github.com/nicolargo/glances.git \
+    https://github.com/phoronix-test-suite/phoronix-test-suite.git \
 "
 
 CLOUDNATIVE_REPOS=" \
