@@ -41,6 +41,7 @@ PUBLIC_REPOS=" \
 
 NETWORKING_REPOS=" \
    https://gitlab.com/etherlab.org/ethercat.git \
+   https://github.com/Mellanox/sockperf.git \
 "
 
 BPFXDP_REPOS=" \
