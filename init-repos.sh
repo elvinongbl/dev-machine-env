@@ -51,6 +51,7 @@ BPFXDP_REPOS=" \
     https://github.com/xdp-project/xdp-tools.git \
     https://github.com/xdp-project/xdp-cpumap-tc.git \
     https://github.com/libbpf/libbpf.git \
+    https://github.com/libbpf/bpftool.git \
     https://git.kernel.org/pub/scm/linux/kernel/git/bpf/bpf-next.git \
     https://git.kernel.org/pub/scm/linux/kernel/git/bpf/bpf.git \
     https://github.com/polycube-network/polycube.git \
@@ -131,7 +132,7 @@ function git_clone_repos() {
         reponame=$(echo $url | grep -o -P "(?<=$topdir/).*(?=.git)|(?<=$topdir/).*")
         if [ ! -d $reponame ]; then
             echo -e "${NCOLOR}Cloning ... $DESTDIR/$reponame"
-            run_cmd git clone $url $reponame
+            run_cmd git clone --recurse-submodules $url $reponame
         else
             echo -e "${NCOLOR}Detected ... $DESTDIR/$reponame"
             run_cmd cd $DESTDIR/$reponame
