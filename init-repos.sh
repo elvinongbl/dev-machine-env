@@ -99,6 +99,7 @@ TRACING_REPOS=" \
     https://git.kernel.org/pub/scm/utils/trace-cmd/trace-cmd.git \
     https://github.com/nicolargo/glances.git \
     https://github.com/phoronix-test-suite/phoronix-test-suite.git \
+    https://github.com/intel/pcm \
 "
 
 CLOUDNATIVE_REPOS=" \
