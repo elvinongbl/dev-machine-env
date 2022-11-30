@@ -101,6 +101,7 @@ TRACING_REPOS=" \
     https://github.com/phoronix-test-suite/phoronix-test-suite.git \
     https://github.com/intel/pcm \
     https://github.com/brendangregg/FlameGraph.git \
+    https://github.com/brendangregg/perf-tools.git \
 "
 
 CLOUDNATIVE_REPOS=" \
