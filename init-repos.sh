@@ -37,6 +37,7 @@ PUBLIC_REPOS=" \
     https://github.com/getpatchwork/git-pw \
     git://git.kernel.org/pub/scm/utils/rt-tests/rt-tests.git \
     git://github.com/acpica/acpica.git \
+    https://github.com/yaml/libyaml.git \
 "
 
 NETWORKING_REPOS=" \
