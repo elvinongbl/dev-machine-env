@@ -114,6 +114,10 @@ SANDBOX_REPOS=" \
     https://github.com/intel-sandbox/personal.bong5.kensho-kit.git \
 "
 
+INTEL_REPOS=" \
+    https://github.com/intel/container-experience-kits.git \
+"
+
 function run_cmd() {
     COLOR='\033[0;36m'
     NCOLOR='\033[0m'
@@ -159,4 +163,5 @@ git_clone_repos ~/public-repos/oss-tracing $TRACING_REPOS
 git_clone_repos ~/public-repos/oss-networking $NETWORKING_REPOS
 git_clone_repos ~/public-repos/oss-cloudnative $CLOUDNATIVE_REPOS
 git_clone_repos ~/sandbox-repos $SANDBOX_REPOS
+git_clone_repos ~/public-repos/oss-intel $INTEL_REPOS
 
