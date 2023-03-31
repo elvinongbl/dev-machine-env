@@ -110,6 +110,10 @@ CLOUDNATIVE_REPOS=" \
     https://github.com/ipdk-io/ipdk.git \
 "
 
+K8S_REPOS=" \
+    https://github.com/kubernetes/kubernetes.git \
+"
+
 SANDBOX_REPOS=" \
     https://github.com/intel-sandbox/personal.bong5.kensho-kit.git \
 "
@@ -164,4 +168,5 @@ git_clone_repos ~/public-repos/oss-networking $NETWORKING_REPOS
 git_clone_repos ~/public-repos/oss-cloudnative $CLOUDNATIVE_REPOS
 git_clone_repos ~/sandbox-repos $SANDBOX_REPOS
 git_clone_repos ~/public-repos/oss-intel $INTEL_REPOS
+git_clone_repos ~/public-repos/oss-k8s $K8S_REPOS
 
