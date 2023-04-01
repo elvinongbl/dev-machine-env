@@ -112,6 +112,9 @@ CLOUDNATIVE_REPOS=" \
 
 K8S_REPOS=" \
     https://github.com/kubernetes/kubernetes.git \
+    https://github.com/kubernetes/cri-api \
+    https://github.com/k8snetworkplumbingwg/sriov-network-device-plugin.git \
+    https://github.com/hustcat/k8s-rdma-device-plugin.git \
 "
 
 SANDBOX_REPOS=" \
@@ -120,6 +123,7 @@ SANDBOX_REPOS=" \
 
 INTEL_REPOS=" \
     https://github.com/intel/container-experience-kits.git \
+    https://github.com/intel/intel-device-plugins-for-kubernetes.git \
 "
 
 function run_cmd() {
