@@ -15,6 +15,7 @@ function usage() {
     echo -e "./install.sh python"
     echo -e "./install.sh package"
     echo -e "./install.sh credential"
+    echo -e "./install.sh sudoer"
 }
 
 ######################################
@@ -22,6 +23,10 @@ function usage() {
 ######################################
 function print_topic() {
     echo -e "\n# $@"
+}
+
+function print_line() {
+    echo -e "# $@"
 }
 
 function print_warn() {
@@ -325,4 +330,15 @@ if [ x"$CHOICE" == x"credential" ]; then
     install_git_credential_manager_latest
 
     print_topic "Install: personal credential : Completed"
+fi
+
+if [ x"$CHOICE" == x"sudoer" ]; then
+    print_banner "Tips: adding sudoer for user manually"
+
+    print_line "$ su"
+    print_line "$ visudo /etc/sudoers.d/<username>"
+    print_line "  <username> ALL=(ALL) NOPASSWD: ALL"
+    print_line "$ su - <username>"
+
+    print_topic "Tips: adding sudoer for user: Completed"
 fi
